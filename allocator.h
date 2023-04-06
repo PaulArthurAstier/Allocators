@@ -57,7 +57,7 @@ public:
      * @param size
      * @return
      */
-     intptr_t* alloc(std::size_t size);
+    intptr_t* alloc(std::size_t size);
 
      /**
       * Sets the used flag of a Chunk to false.
@@ -80,6 +80,8 @@ public:
         return (Chunk*)((char*)data + sizeof(std::declval<Chunk>().data) - sizeof(Chunk));
     }
 
+    void print_all_memory();
+
 private:
 
     /**
@@ -89,7 +91,7 @@ private:
      * @param size number of bytes that the user wants to store.
      * @return the round up number of bytes needed to store the data.
      */
-    std::size_t align(std::size_t size);
+    static std::size_t align(std::size_t size);
 
     /**
      * Returns the size of the data that needs to be allocated, plus the size of the header. The header however,
@@ -112,6 +114,21 @@ private:
      * @return the program break pointer.
      */
     Chunk* memory_map(std::size_t size);
+
+    /**
+     * Finds the first already allocated Chunk of memory that is not being used. This function goes through the entire
+     * linked list of memory, looking for a Chunk that is both not in use (used flag set to false) and has a size bigger
+     * than the sized requested. This function does not seek to look for the best size fit for the memory requested
+     *
+     * @param size Minimum size being requested
+     * @return A pointer to the free, adequate chunk, or nullptr if none were found.
+     */
+    Chunk* first_fit(std::size_t size);
+
+    Chunk* find_chunk(std::size_t size);
+    /**
+     * Member variables -----------------------------------------------------------------------------------------------
+     */
 
     /**
      * initial start of the linked list

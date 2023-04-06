@@ -4,6 +4,7 @@
 
 #include <utility>
 #include <unistd.h>
+#include <iostream>
 #include "allocator.h"
 
 Memory_Linked_List::Memory_Linked_List():
@@ -13,24 +14,34 @@ Memory_Linked_List::Memory_Linked_List():
 
 intptr_t *Memory_Linked_List::alloc(std::size_t size)
 {
-    //maps the chunk
+    //gets the minimum memory needed for allocation
     auto aligned = align(size);
+
+    //looks for chunks that are freed
+    if(auto freed_chunk = find_chunk(size))
+    {
+        //gives a pointer to the freed chunk
+        return freed_chunk->data;
+    }
+
+    //requests data from memory
     auto chunk = memory_map(aligned);
 
     //sets its header
     chunk->size = aligned;
     chunk->used = true;
 
+    //linking chunk to the list
+    if(m_start != nullptr)
+    {
+        m_end->next = chunk;
+    }
+
     //initialises the list
     if(m_initial == nullptr)
     {
         m_initial = chunk;
-    }
-
-    //linking chunk to the list
-    else if(m_start != nullptr)
-    {
-        m_end->next = chunk;
+        m_start = chunk;
     }
 
     //making chunk the last on the list
@@ -78,4 +89,42 @@ void Memory_Linked_List::free(intptr_t *data)
     auto chunk = get_header(data);
     //frees it
     chunk->used = false;
+}
+
+Chunk *Memory_Linked_List::first_fit(std::size_t size)
+{
+    //start searching at the top of the linked list
+    auto search = m_initial;
+
+    //goes through the whole list
+    while (search != nullptr)
+    {
+        //checks if it is not used and has adequate size
+        if(!search->used && search->size > size)
+        {
+            return search;
+        }
+        //if not, continue search
+        search = search->next;
+    }
+    //if nothing found, return null
+    return nullptr;
+}
+
+Chunk *Memory_Linked_List::find_chunk(std::size_t size)
+{
+    return first_fit(size);
+}
+
+void Memory_Linked_List::print_all_memory()
+{
+    for(auto i = m_initial; i != nullptr; i = i->next)
+    {
+        std::cout << "data: " << *i->data << std::endl;
+        std::cout << "size: " << i->size << std::endl;
+        std::cout << "Used: " << i->used << std::endl;
+        std::cout << "Pointer of itself: " << &i->data << std::endl;
+        std::cout << "Next chunk pointer: " << i->next << std::endl;
+        std::cout << "---------------------" << std::endl;
+    }
 }
