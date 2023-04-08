@@ -48,6 +48,20 @@ class Memory_Linked_List
 {
 public:
     /**
+     * this enum is to select the search mode desired for block reuse.
+     */
+    enum class search_mode{
+        first_fit,
+        next_fit,
+        best_fit,
+    };
+
+    /**
+     * the search mode that will be used in block reuse
+     */
+    search_mode m_search_mode = search_mode::next_fit;
+
+    /**
      * Initialises the link list. It sets m_initial to nullptr, and m_start to m_initial.
      */
     Memory_Linked_List();
@@ -60,7 +74,8 @@ public:
     intptr_t* alloc(std::size_t size);
 
      /**
-      * Sets the used flag of a Chunk to false.
+      * Sets the used flag of a Chunk to false. By setting the used flag to false, the Chunk is marked to be reused
+      * when a new Chunk of memory is being requested.
       *
       * @param data a pointer of the memory that is being freed.
       */
@@ -80,7 +95,21 @@ public:
         return (Chunk*)((char*)data + sizeof(std::declval<Chunk>().data) - sizeof(Chunk));
     }
 
+    /**
+     * this is for testing purposes, it prints the whole memory linked list and information about each node.
+     */
     void print_all_memory();
+
+    /**
+     * this is for testing purposes, it prints the number of times the reuse functions go through the list, to see if
+     * it becomes more efficient.
+     */
+    void print_counter() const
+    {
+        std::cout << "~~~~~~~~~" << std::endl;
+        std::cout << "~~~" << counter << "~~~" << std::endl;
+        std::cout << "~~~~~~~~~" << std::endl;
+    }
 
 private:
 
@@ -118,16 +147,42 @@ private:
     /**
      * Finds the first already allocated Chunk of memory that is not being used. This function goes through the entire
      * linked list of memory, looking for a Chunk that is both not in use (used flag set to false) and has a size bigger
-     * than the sized requested. This function does not seek to look for the best size fit for the memory requested
+     * than the sized requested. This function does not seek to look for the best size fit for the memory requested.
      *
      * @param size Minimum size being requested
      * @return A pointer to the free, adequate chunk, or nullptr if none were found.
      */
     Chunk* first_fit(std::size_t size);
 
-    Chunk* find_chunk(std::size_t size);
     /**
-     * Member variables -----------------------------------------------------------------------------------------------
+     * Works like first_fit(), but when a free Chunk of memory is found, its position is tracked. It is tracked with the
+     * member variable m_next_fit_chunk, which is set to m_initial when the Memory_Linked_List is created. When this
+     * function is called again, instead of beginning at the start of the Memory_Linked_List, it will continue from the
+     * last position tracked, possibly saving some time.
+     *
+     * @param size the size that is requested for new memory
+     * @return a pointer of a freed Chunk, or nullptr if none were found.
+     */
+    Chunk* next_fit(std::size_t size);
+
+    /**
+     *
+     *
+     * @param size size that is requested for new memory
+     * @return a pointer of a freed Chunk, or nullptr if none were found.
+     */
+    Chunk* best_fit(std::size_t size);
+
+    /**
+     * this function chooses which search mode is used for block reuse.
+     * @param mode what search mode is used.
+     * @param size the memory needed to allocate.
+     * @return a pointer the the reused chunk, or a nullptr if there is no available free Chunk.
+     */
+    Chunk* find_chunk(std::size_t size);
+
+    /** ---------------------------------------------------------------------------------------------------------------
+     * Member variables
      */
 
     /**
@@ -142,6 +197,14 @@ private:
      * The end of the linked list.
      */
     Chunk* m_end;
+
+    /**
+     *  Used in the next_fit search mode, it keeps track of the last found free chunk
+     */
+    Chunk* m_next_fit_chunk;
+
+    ///TODO: delete counter member variable after all testing are done.
+    int counter;
 };
 
 #endif //ALLOCATORSANDMEMORYPOOL_ALLOCATOR_H

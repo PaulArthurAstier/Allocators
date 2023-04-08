@@ -9,7 +9,9 @@
 
 Memory_Linked_List::Memory_Linked_List():
         m_initial{nullptr},
-        m_start{m_initial}
+        m_start{m_initial},
+        m_next_fit_chunk{nullptr},
+        counter{0}
 {}
 
 intptr_t *Memory_Linked_List::alloc(std::size_t size)
@@ -20,6 +22,7 @@ intptr_t *Memory_Linked_List::alloc(std::size_t size)
     //looks for chunks that are freed
     if(auto freed_chunk = find_chunk(size))
     {
+        freed_chunk->used = true;
         //gives a pointer to the freed chunk
         return freed_chunk->data;
     }
@@ -41,6 +44,7 @@ intptr_t *Memory_Linked_List::alloc(std::size_t size)
     if(m_initial == nullptr)
     {
         m_initial = chunk;
+        m_next_fit_chunk = chunk;
         m_start = chunk;
     }
 
@@ -93,38 +97,81 @@ void Memory_Linked_List::free(intptr_t *data)
 
 Chunk *Memory_Linked_List::first_fit(std::size_t size)
 {
-    //start searching at the top of the linked list
-    auto search = m_initial;
-
-    //goes through the whole list
-    while (search != nullptr)
+    //going through the whole list
+    for(auto s = m_initial; s != nullptr; s = s->next)
     {
-        //checks if it is not used and has adequate size
-        if(!search->used && search->size > size)
+        counter++;
+        //checks if it is an adequate free Chunk
+        if(!s->used && s->size > size)
         {
-            return search;
+            return s;
         }
-        //if not, continue search
-        search = search->next;
     }
     //if nothing found, return null
     return nullptr;
 }
 
+Chunk *Memory_Linked_List::next_fit(std::size_t size)
+{
+    //going through the whole list, but starting at the last found block
+    for(auto s = m_next_fit_chunk; s != nullptr; s = s->next)
+    {
+        counter++;
+        //checking if block reuse conditions are met
+        if(!s->used && s->size > size)
+        {
+            //resetting the m_next_fit_chunk to the start if it is at the end of the list
+            if(m_next_fit_chunk == nullptr)
+            {
+                m_next_fit_chunk = m_initial;
+            }
+            //making m_next_fit_chunk the latest found chunk
+            else m_next_fit_chunk = s;
+            return s;
+        }
+    }
+    return nullptr;
+}
+
+Chunk *Memory_Linked_List::best_fit(std::size_t size)
+{
+
+    
+    return nullptr;
+}
+
 Chunk *Memory_Linked_List::find_chunk(std::size_t size)
 {
-    return first_fit(size);
+    switch (m_search_mode)
+    {
+        case search_mode::first_fit:
+            return first_fit(size);
+            break;
+        case search_mode::next_fit:
+            return next_fit(size);
+            break;
+        case search_mode::best_fit:
+            return best_fit(size);
+            break;
+        default:
+            throw std::invalid_argument("No search mode were selected");
+            return nullptr;
+    }
 }
 
 void Memory_Linked_List::print_all_memory()
 {
     for(auto i = m_initial; i != nullptr; i = i->next)
     {
+        std::cout << "---------------------" << std::endl;
         std::cout << "data: " << *i->data << std::endl;
         std::cout << "size: " << i->size << std::endl;
         std::cout << "Used: " << i->used << std::endl;
         std::cout << "Pointer of itself: " << &i->data << std::endl;
         std::cout << "Next chunk pointer: " << i->next << std::endl;
-        std::cout << "---------------------" << std::endl;
     }
 }
+
+
+
+
