@@ -1,98 +1,87 @@
 #include <iostream>
-#include <cassert>
-#include "allocator.h"
+#include "Allocation.h"
 
 int main()
 {
 
-    auto mll = Memory_Linked_List();
-    char* letter1 = (char*)mll.alloc(5 * sizeof(char));
-    letter1[0] = '1';
-    letter1[1] = 'b';
-    letter1[2] = 'c';
-    letter1[3] = 'd';
-    letter1[4] = '3';
+    char *word0 = new char;
+    *word0 = 'a';
+    char *word1 = new char;
+    *word1 = 'b';
+    char *word2 = new char;
+    *word2 = 'c';
+    char *word3 = new char;
+    *word3 = 'd';
+    char *word4 = new char;
+    *word4 = 'e';
+    char *word5 = new char;
+    *word5 = 'f';
 
+    delete(word0);
+    delete(word1);
+    delete(word2);
 
-    auto letter2 = (char *)mll.alloc(sizeof(char));
-    *letter2 = '2';
+    char *word6 = new char;
+    *word6 = 'g';
+    char *word7 = new char;
+    *word7 = 'h';
+    char *word8 = new char;
+    *word8 = 'i';
 
-    char* letter3 = (char*)mll.alloc(sizeof(char));
-    *letter3 = '3';
+    delete(word3);
+    delete(word4);
+    delete(word5);
 
-    char* letter4 = (char*)mll.alloc(sizeof(char));
-    *letter4 = '4';
+    char *word9 = new char;
+    *word9 = 'g';
+    char *word10 = new char;
+    *word10 = 'h';
+    char *word11 = new char;
+    *word11 = 'i';
 
-    auto letter5 = (char *)mll.alloc(sizeof(char));
-    *letter5 = '5';
+    delete(word6);
+    delete(word7);
+    delete(word8);
+    delete(word9);
+    delete(word10);
+    delete(word11);
 
-    char* letter6 = (char*)mll.alloc(sizeof(char));
-    *letter6 = '6';
+    char *word12 = new char;
+    *word12 = 'g';
+    char *word13 = new char;
+    *word13 = 'h';
+    char *word14 = new char;
+    *word14 = 'i';
+    char *word15 = new char;
+    *word15 = 'g';
+    char *word16 = new char;
+    *word16 = 'h';
+    char *word17 = new char;
+    *word17 = 'i';
+    char *word18 = new char;
+    *word18 = 'g';
+    char *word19 = new char;
+    *word19 = 'h';
+    char *word20 = new char;
+    *word20 = 'i';
+    char *word21 = new char;
+    *word21 = 'g';
+    char *word22 = new char;
+    *word22 = 'h';
+    char *word23 = new char;
+    *word23 = 'i';
 
-    char* letter7 = (char*)mll.alloc(sizeof(char));
-    *letter7 = '7';
-
-    char* letter8 = (char*)mll.alloc(sizeof(char));
-    *letter8 = '8';
-
-    mll.free(reinterpret_cast<intptr_t *>(letter5));
-    mll.free(reinterpret_cast<intptr_t *>(letter4));
-    mll.free(reinterpret_cast<intptr_t *>(letter8));
-    mll.free(reinterpret_cast<intptr_t *>(letter3));
-    mll.free(reinterpret_cast<intptr_t *>(letter6));
-    mll.free(reinterpret_cast<intptr_t *>(letter2));
-    mll.free(reinterpret_cast<intptr_t *>(letter7));
-    mll.free(reinterpret_cast<intptr_t *>(letter1));
-
-
-    char* letter9 = (char*)mll.alloc(sizeof(char));
-    *letter9 = 'f';
-
-    char* letter10 = (char*)mll.alloc(sizeof(char));
-    *letter10 = 'g';
-
-    char* letter11 = (char*)mll.alloc(sizeof(char));
-    *letter11 = 'h';
-
-    char* letter12 = (char*)mll.alloc(sizeof(char));
-    *letter12 = 'i';
-
-    char* letter13 = (char*)mll.alloc(sizeof(char));
-    *letter13 = 'j';
-
-    char* letter14 = (char*)mll.alloc(sizeof(char));
-    *letter14 = 'k';
-
-    char* letter15 = (char*)mll.alloc(sizeof(char));
-    *letter15 = 'l';
-
-    char* letter16 = (char*)mll.alloc(sizeof(char));
-    *letter16 = 'm';
+    delete(word12);
+    delete(word13);
+    delete(word14);
+    delete(word15);
+    delete(word16);
+    delete(word17);
 
 
     mll.print_all_memory();
-
-    mll.print_counter();
-
-    std::cout << letter1[0] << std::endl;
-    std::cout << *letter2 << std::endl;
-    std::cout << *letter3 << std::endl;
-    std::cout << *letter4 << std::endl;
-    std::cout << *letter5 << std::endl;
-    std::cout << *letter6 << std::endl;
-    std::cout << *letter7 << std::endl;
-    std::cout << *letter8 << std::endl;
-    std::cout << *letter9 << std::endl;
-    std::cout << *letter10 << std::endl;
-    std::cout << *letter11 << std::endl;
-    std::cout << *letter12 << std::endl;
-    std::cout << *letter13 << std::endl;
-    std::cout << *letter14 << std::endl;
-    std::cout << *letter15 << std::endl;
-    std::cout << *letter16 << std::endl;
-
-
-
+    std::cout << "<<<<<<<<freelist>>>>>>>>" << std::endl;
+    mll.print_all_free_memory();
 
 
 }

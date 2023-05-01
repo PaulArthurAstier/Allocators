@@ -37,45 +37,65 @@ public:
      * Users memory.
      */
     intptr_t data[1];
+
 };
 
 /**
  * A linked list of the chunks created the memory.
  *
- *
+ * This whole class is the allocator and memory management class. When creating a new object within the heap, this class
+ * will create memory and manage it.
  */
 class Memory_Linked_List
 {
 public:
     /**
      * this enum is to select the search mode desired for block reuse.
+     *
+     * first_fist will reuse the first block that is big enough to store the data.
+     *
+     * next_fit is like first_fit, but will keep the position of the last tracked found memory, so it doesnt have to
+     * start all over again.
+     *
+     * best_fit will find the best block possible for the new memory.
+     *
+     * free_list creates a new linked list of the free Chunks, and will go through that list when reusing memory .
      */
     enum class search_mode{
         first_fit,
         next_fit,
         best_fit,
+        free_list,
     };
 
     /**
      * the search mode that will be used in block reuse
      */
-    search_mode m_search_mode = search_mode::next_fit;
+    search_mode m_search_mode = search_mode::free_list;
 
     /**
-     * Initialises the link list. It sets m_initial to nullptr, and m_start to m_initial.
+     * Initialises the link list. It sets all of the member variables to nullptr.
      */
     Memory_Linked_List();
 
     /**
+     *  alloc memory onto the heap, manging this memory in a linked list, and creating or recycling Chunks.
      *
-     * @param size
-     * @return
+     *  alloc will first check if there are any Chunks that can be recycled first, using what ever algorithm is
+     *  selected in m_search_mode. If a free Chunk as not been found, it will manually request memory form the heap.
+     *  alloc also manages the memory linked list, initializing it or adding new chunks at the end of it. In either
+     *  cases, whether a Chunk is recycled or created, the Chunk used value is set to true and the payload pointer is
+     *  returned to the user.
+     * @param size the size that the user wants to store.
+     * @return the payload pointer to the data.
      */
     intptr_t* alloc(std::size_t size);
 
      /**
-      * Sets the used flag of a Chunk to false. By setting the used flag to false, the Chunk is marked to be reused
-      * when a new Chunk of memory is being requested.
+      * Sets the used flag of a Chunk to false.
+      *
+      * By setting the used flag to false, the Chunk is marked to be reused when a new Chunk of memory is being
+      * requested. If the free_list option has been selected, it will instead put the freed chunk in its own linked list
       *
       * @param data a pointer of the memory that is being freed.
       */
@@ -101,15 +121,11 @@ public:
     void print_all_memory();
 
     /**
-     * this is for testing purposes, it prints the number of times the reuse functions go through the list, to see if
-     * it becomes more efficient.
+     * this is for testing purposes, it prints the whole freed memory linked list and information about each node.
      */
-    void print_counter() const
-    {
-        std::cout << "~~~~~~~~~" << std::endl;
-        std::cout << "~~~" << counter << "~~~" << std::endl;
-        std::cout << "~~~~~~~~~" << std::endl;
-    }
+    void print_all_free_memory();
+
+
 
 private:
 
@@ -166,12 +182,39 @@ private:
     Chunk* next_fit(std::size_t size);
 
     /**
+     * best_fit() will seek the best possible Chunk in terms of size.
      *
+     * best_fit() will first go through the whole list checking if there is a freed Chunk big enough for it. If there
+     * are none, then it will return nullptr. It will start with the minimum size required and go through the whole list.
+     * If there is no chunk freed with said size is found, do it again but with double the size required. This will
+     * continue until a Chunk is found.
      *
      * @param size size that is requested for new memory
      * @return a pointer of a freed Chunk, or nullptr if none were found.
      */
     Chunk* best_fit(std::size_t size);
+
+    /**
+     *  Creates and manges a linked list for free Chunks.
+     *
+     *  free_listing will add Chunks to a free linked list, initializing it if there are none, or adding them to the end
+     *  of the list. It also removes the freed Chunk for the memory linked list. This makes searching much faster, as
+     *  the reuse algorithm only has to go through the freed Chunks.
+     *
+     * @param chunk the Chunk being removed.
+     */
+    void free_listing(Chunk* chunk);
+
+    /**
+     * Reuses Chunks from the freed list, and moving them to the memory linked list.
+     *
+     * This does the opposite of free_listing. It also checks if there is enough memory for the data requested.
+     *
+     * @param size the size needed for memory
+     * @return the chunk that is being reused.
+     */
+    Chunk* free_list(std::size_t size);
+
 
     /**
      * this function chooses which search mode is used for block reuse.
@@ -199,12 +242,26 @@ private:
     Chunk* m_end;
 
     /**
-     *  Used in the next_fit search mode, it keeps track of the last found free chunk
+     * Used in the next_fit search mode, it keeps track of the last found free chunk
      */
     Chunk* m_next_fit_chunk;
 
-    ///TODO: delete counter member variable after all testing are done.
-    int counter;
+
+    /**
+     * initial Chunk in the freed list
+     */
+    Chunk* f_list_initial;
+
+    /**
+     * the first Chunk in the freed list
+     */
+    Chunk* f_list_start;
+
+    /**
+     * the last Chunk in the freed list
+     */
+    Chunk* f_list_end;
+
 };
 
 #endif //ALLOCATORSANDMEMORYPOOL_ALLOCATOR_H
