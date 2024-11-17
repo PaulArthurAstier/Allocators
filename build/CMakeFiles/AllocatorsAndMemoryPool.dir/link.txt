@@ -1,1 +1,0 @@
-/usr/bin/clang++-18 CMakeFiles/AllocatorsAndMemoryPool.dir/main.cpp.o CMakeFiles/AllocatorsAndMemoryPool.dir/allocator.cpp.o -o AllocatorsAndMemoryPool 

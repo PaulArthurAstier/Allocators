@@ -1,3 +1,0 @@
-/mnt/d/OneDrive/Desktop/Year 4/APC/Topic 1 Allocators/Allocators/build/CMakeFiles/allocator.dir
-/mnt/d/OneDrive/Desktop/Year 4/APC/Topic 1 Allocators/Allocators/build/CMakeFiles/edit_cache.dir
-/mnt/d/OneDrive/Desktop/Year 4/APC/Topic 1 Allocators/Allocators/build/CMakeFiles/rebuild_cache.dir
