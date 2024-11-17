@@ -18,7 +18,7 @@ void *operator new(std::size_t size)
 }
 
 // overriding the delete operator
-void operator delete(void *pointer) 
+void operator delete(void *pointer) noexcept
 {
     mll.free(static_cast<intptr_t *>(pointer));
 }

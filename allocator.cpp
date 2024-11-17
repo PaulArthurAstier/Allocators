@@ -3,6 +3,7 @@
 //
 
 #include <utility>
+#include <sys/mman.h>  
 #include <unistd.h>
 #include <iostream>
 #include "allocator.h"
@@ -81,15 +82,19 @@ std::size_t Memory_Linked_List::allocSize(std::size_t size)
 
 Chunk *Memory_Linked_List::memory_map(std::size_t size)
 {
-    //program break
-    auto chunk = (Chunk*)sbrk(0);
+    // Calculate the allocation size, including any metadata and alignment requirements
+    std::size_t total_size = allocSize(size);
 
-    //check if it will be OOM
-    if(sbrk(allocSize(size)) == (void*)-1 )
+    // Use mmap to allocate memory with read/write permissions
+    void* addr = mmap(nullptr, total_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+
+    // Check if mmap failed
+    if (addr == MAP_FAILED)
     {
         return nullptr;
     }
-    return chunk;
+
+    return static_cast<Chunk*>(addr);
 }
 
 void Memory_Linked_List::free(intptr_t *data)
