@@ -17,7 +17,7 @@ int main()
     char *word5 = new char;
     *word5 = 'f';
 
-    delete(word0);
+
     delete(word1);
     delete(word2);
 
@@ -33,11 +33,11 @@ int main()
     delete(word5);
 
     char *word9 = new char;
-    *word9 = 'g';
+    *word9 = 'j';
     char *word10 = new char;
-    *word10 = 'h';
+    *word10 = 'k';
     char *word11 = new char;
-    *word11 = 'i';
+    *word11 = 'l';
 
     delete(word6);
     delete(word7);
@@ -47,29 +47,29 @@ int main()
     delete(word11);
 
     char *word12 = new char;
-    *word12 = 'g';
+    *word12 = 'm';
     char *word13 = new char;
-    *word13 = 'h';
+    *word13 = 'n';
     char *word14 = new char;
-    *word14 = 'i';
+    *word14 = 'o';
     char *word15 = new char;
-    *word15 = 'g';
+    *word15 = 'p';
     char *word16 = new char;
-    *word16 = 'h';
+    *word16 = 'q';
     char *word17 = new char;
-    *word17 = 'i';
+    *word17 = 'r';
     char *word18 = new char;
-    *word18 = 'g';
+    *word18 = 's';
     char *word19 = new char;
-    *word19 = 'h';
+    *word19 = 't';
     char *word20 = new char;
-    *word20 = 'i';
+    *word20 = 'u';
     char *word21 = new char;
-    *word21 = 'g';
+    *word21 = 'v';
     char *word22 = new char;
-    *word22 = 'h';
+    *word22 = 'w';
     char *word23 = new char;
-    *word23 = 'i';
+    *word23 = 'x';
 
     delete(word12);
     delete(word13);
