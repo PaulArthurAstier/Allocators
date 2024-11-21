@@ -1,9 +1,13 @@
 #include <iostream>
 #include "Allocation.h"
+#include <vector>
 
+#include <memory>
+// std::allocator
 
 int main()
 {
+
 
     char *word0 = new char;
     *word0 = 'a';
@@ -14,5 +18,6 @@ int main()
     std::cout << "<<<<<<<<freelist>>>>>>>>" << std::endl;
     mll.print_all_free_memory();
 
+    std::vector<int, Memory_Linked_List> vec{};
 
 }
