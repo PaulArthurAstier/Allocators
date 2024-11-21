@@ -23,4 +23,4 @@ void operator delete(void *pointer) noexcept
     mll.free(static_cast<intptr_t *>(pointer));
 }
 
-#endif //ALLOCATORSANDMEMORYPOOL_ALLOCATION_H
+#endif // ALLOCATORSANDMEMORYPOOL_ALLOCATION_H
