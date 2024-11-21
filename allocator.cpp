@@ -390,7 +390,7 @@ void Memory_Linked_List::print_all_memory()
     for(auto i = m_initial; i != nullptr; i = i->next)
     {
         std::cout << "---------------------" << std::endl;
-        std::cout << "payload : " << (char)i->data[0] << std::endl;
+        std::cout << "payload : " << i->data[0] << std::endl;
         std::cout << "size:     " << i->size << std::endl;
         std::cout << "Used:     " << i->used << std::endl;
     }
