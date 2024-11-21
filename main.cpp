@@ -17,5 +17,4 @@ int main()
     mll.print_all_memory();
     std::cout << "<<<<<<<<freelist>>>>>>>>" << std::endl;
     mll.print_all_free_memory();
-
 }
