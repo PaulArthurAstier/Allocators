@@ -18,6 +18,4 @@ int main()
     std::cout << "<<<<<<<<freelist>>>>>>>>" << std::endl;
     mll.print_all_free_memory();
 
-    std::vector<int, Memory_Linked_List> vec{};
-
 }

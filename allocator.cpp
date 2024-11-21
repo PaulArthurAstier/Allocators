@@ -82,7 +82,24 @@ std::size_t Memory_Linked_List::allocSize(std::size_t size)
 
 Chunk *Memory_Linked_List::memory_map(std::size_t size)
 {
-    // Calculate the allocation size, including any metadata and alignment requirements
+    switch(m_mmap_mode)
+    {
+        case mmap_mode::sbrk:
+            return memory_map_mmap(size);
+            break;
+        case mmap_mode::mmap:
+            return memory_map_sbrk(size);
+            break;
+        default:
+            throw std::runtime_error("No mememory mapping has been picked");
+            return nullptr;
+            break;
+    }
+}
+
+Chunk *Memory_Linked_List::memory_map_mmap(std::size_t size)
+{
+        // Calculate the allocation size, including any metadata and alignment requirements
     std::size_t total_size = allocSize(size);
 
     // Use mmap to allocate memory with read/write permissions
@@ -95,6 +112,19 @@ Chunk *Memory_Linked_List::memory_map(std::size_t size)
     }
 
     return static_cast<Chunk*>(addr);
+}
+
+Chunk *Memory_Linked_List::memory_map_sbrk(std::size_t size)
+{
+    //program break
+    auto chunk = (Chunk*)sbrk(0);
+
+    //check if it will be OOM
+    if(sbrk(allocSize(size)) == (void*)-1 )
+    {
+        return nullptr;
+    }
+    return chunk;
 }
 
 void Memory_Linked_List::free(intptr_t *data)

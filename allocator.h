@@ -68,10 +68,17 @@ public:
         free_list,
     };
 
+    enum class mmap_mode{
+        sbrk,
+        mmap,
+    };
+
     /**
      * the search mode that will be used in block reuse
      */
     search_mode m_search_mode = search_mode::free_list;
+
+    mmap_mode m_mmap_mode = mmap_mode::mmap;
 
     /**
      * Initialises the link list. It sets all of the member variables to nullptr.
@@ -159,6 +166,10 @@ private:
      * @return the program break pointer.
      */
     Chunk* memory_map(std::size_t size);
+
+    Chunk *memory_map_mmap(std::size_t size);
+
+    Chunk *memory_map_sbrk(std::size_t size);
 
     /**
      * Finds the first already allocated Chunk of memory that is not being used. This function goes through the entire
