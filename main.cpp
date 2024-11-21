@@ -16,11 +16,8 @@ int main()
     mll.print_all_memory();
     std::cout << "<<<<<<<<freelist>>>>>>>>" << std::endl;
     mll.print_all_free_memory();
-<<<<<<< HEAD
-=======
 
     runBenchmarks();
 
     return 0;
->>>>>>> 730dc91109a25867627a6adc7f66eb5b80cf07a8
 }
