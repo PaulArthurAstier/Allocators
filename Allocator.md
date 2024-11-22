@@ -39,17 +39,18 @@ contiguous, and the operating system may impose restrictions on the size or loca
 
 ### Memory Mapping Implementaion
 
-In our case, we will be using `sbrk()` to manually move the brk pointer. In doing so, we can dynamically contract and expand the available space within the heap.
+In our case, we will be using two different implementations, `sbrk()` & `nmap()`. The sole reason in doing so is for the purpose of being able to expand on the research topic, implementing a custom allocator, by being able to compare the performance through a series of benchmark tests. Both mechanisms use different system calls for memory allocation, thus meaning they embody different characteristics. Starting with `sbrk()`, we will break down the distinct characteristics in an indepth manner.
 
-![img.png](img.png)
+#### Sbrk():
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_Figure 1. Virtual memory layout_
+- The `sbrk()` mechanism puppeteers
+
+![alt text](image.png)Figure 1. Virtual memory layout\_
 
 ## Basic Memory Management
 
 The first step building a memory management system is to figure out how to handle your data. There are many data structures that we could use, such as binary trees, hash tables or even graphs, but we will stick to the singly linked list. The diagram shows the workings of the linked list in a visual manner.
 
-![alt text](image-1.png)
 _Figure 2. Linked List Implementation_
 
 For each node of the linked list, we will create a Chunk, which will contain header data about the memory that we have stored.
@@ -70,7 +71,7 @@ With just these data variables defined and setup in the header, we are able to m
 
 Taking a closer look at just a single node(chunk) in our linked list, we can see it is made up of three seperate sections.
 
-![alt text](image.png)
+![alt text](image-1.png)
 _Figure 3. Structure of a single chunk_
 
 - Object Header
