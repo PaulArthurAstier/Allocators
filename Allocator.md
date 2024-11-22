@@ -39,13 +39,35 @@ contiguous, and the operating system may impose restrictions on the size or loca
 
 ### Memory Mapping Implementaion
 
-In our case, we will be using two different implementations, `sbrk()` & `nmap()`. The sole reason in doing so is for the purpose of being able to expand on the research topic, implementing a custom allocator, by being able to compare the performance through a series of benchmark tests. Both mechanisms use different system calls for memory allocation, thus meaning they embody different characteristics. Starting with `sbrk()`, we will break down the distinct characteristics in an indepth manner.
+In our case, we will be using two different implementations, `sbrk()` & `nmap()`. The sole reason in doing so is for the purpose of being able to expand on our research topic, implementing a custom allocator, by also comparing the performance through a series of benchmark tests. Both mechanisms use different system calls for memory allocation, thus meaning they embody different characteristics.We will break down the mechanism and characterstics, starting with `sbrk()`
 
-#### Sbrk():
+#### sbrk():
 
-- The `sbrk()` mechanism puppeteers
+- The `sbrk()` mechanism puppeteers the program break. Essentially, this is what allows the heap to be expanded and contracted.
 
 ![alt text](image.png)Figure 1. Virtual memory layout\_
+
+- Calling `sbrk()` with a postive argument increases the data segement size, internally adding more contiguous memory to the heap.
+
+- While calling `sbrk()` with a negative argument decreases the data segement size.
+
+##### Characterstics:
+
+- Simple Management - The heap grows linearly, simplifying the management system. Although, deallocation of memory with `sbrk()` is actually more complex as it invloves custom logic within the allocator itself.
+
+- Contiguous Memory - Beneficial for performance when dealing with sequential access patterns.
+
+- Portability - `sbrk()` caters for Unix.
+
+- Fragmentation Potentiality - Even though `sbrk()` abides by contiguous memory, constant allocation and deallocation of varying sizes can lead to external fragmentation. There is in fact sufficient memory in total but not in a individual contiguous block.
+
+#### `mmap():`
+
+- The `mmap()` system call creates a new mapping in virtual address space of a specific process.
+
+- `mmap()` maps files or devices into memory. This type of memory mapping is assocaited with a file on disk and is known as _file-backed_.
+
+- Furthermore, `mmap()` can handle none file backed mapping. This is known as _anonymous_ mapping. A new region of virtual memory, private to the process, is created.
 
 ## Basic Memory Management
 
