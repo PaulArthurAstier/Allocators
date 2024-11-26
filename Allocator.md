@@ -51,8 +51,6 @@ In our case, we will be using two different implementations, `sbrk()` & `nmap()`
 
 - While calling `sbrk()` with a negative argument decreases the data segement size.
 
-##### Characterstics:
-
 - Simple Management - The heap grows linearly, simplifying the management system. Although, deallocation of memory with `sbrk()` is actually more complex as it invloves custom logic within the allocator itself.
 
 - Contiguous Memory - Beneficial for performance when dealing with sequential access patterns.
@@ -67,7 +65,47 @@ In our case, we will be using two different implementations, `sbrk()` & `nmap()`
 
 - `mmap()` maps files or devices into memory. This type of memory mapping is assocaited with a file on disk and is known as _file-backed_.
 
-- Furthermore, `mmap()` can handle none file backed mapping. This is known as _anonymous_ mapping. A new region of virtual memory, private to the process, is created.
+- Moreover, `mmap()` can handle none file backed mapping. This is known as _anonymous_ mapping. A new region of virtual memory, private to the process, is created.
+
+- _Anonymous_ memory mapping allocates memory that is not associated with a file. This is useful for creating a private memory region for our alloacator.
+
+- There is number of key arguments to consider when using `mmap()`.
+
+  - _length_ - The length of the mapping bytes.
+  - _addr_ - The suggested starting address for the mapping.
+  - _flags_ - Flags that provide control of the mapping behaviour.
+    - `PROT_READ`
+    - `PROT_WRITE`
+    - `PROT_EXEC`
+    - `MAP_PRIVATE`
+    - `MAP_SHARED`
+    - `MAP_ANONYMOUS`
+  - _fd_ - File descriptor when mapping a file. It is set to -1 to indicate an anonymous mapping.
+  - _offset_ - Offset position in within the file to start the mapping from.
+
+## Benchmark Implementation
+
+In orser to benchmark and analyse the performance of `sbrk()`, `mmap()` and the standard C++ allocator, we can design tests to focus on key performance indicators.
+
+### Benchmark Design:
+
+- _Allocation Sizes_ - Test with a varied range of allocation sizes, categorised as: small, medium and large.
+
+  - _Small_ : 1 byte, 10 bytes, 100 bytes
+  - _Medium_ : 1 KB, 10 KB, 100 KB
+  - _Large_ : 1 MB, 10 MB, 100 MB
+
+- _Number of Allocation_ - We can use a varied number of allocations in each performed test. This will facilitate the evaluation of how the allocators scale with increased demand.
+
+- _Allocation Patterns_ - Use different allocation patterns, for example:
+  - Sequential Allocation
+  - Random Allocation
+  - Mixed workload of allocation.
+- _Metrics_
+  - Memory Usage
+  - Allocation Time
+  - Deallocation Time
+  - Fragmentation
 
 ## Basic Memory Management
 
