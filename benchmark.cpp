@@ -6,23 +6,30 @@
 void benchmark_allocation(int num_allocations, std::size_t size)
 {
     auto start = std::chrono::high_resolution_clock::now();
+
     std::vector<intptr_t *> pointers;
+    
     for (int i = 0; i < num_allocations; ++i)
     {
         pointers.push_back(new intptr_t[size]); // Allocate
     }
+    
     auto end = std::chrono::high_resolution_clock::now();
+
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 
     std::cout << "Allocation of " << num_allocations << " blocks of size " << size
               << ": " << duration.count() << " microseconds" << std::endl;
 
     start = std::chrono::high_resolution_clock::now();
+
     for (intptr_t *ptr : pointers)
     {
         delete[] ptr; // Deallocate
     }
+
     end = std::chrono::high_resolution_clock::now();
+    
     duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 
     std::cout << "Deallocation of " << num_allocations << " blocks of size " << size
