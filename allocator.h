@@ -76,7 +76,7 @@ public:
     /**
      * the search mode that will be used in block reuse
      */
-    search_mode m_search_mode = search_mode::free_list;
+    search_mode m_search_mode = search_mode::first_fit;
 
     mmap_mode m_mmap_mode = mmap_mode::mmap;
 
@@ -126,6 +126,10 @@ public:
      * this is for testing purposes, it prints the whole memory linked list and information about each node.
      */
     void print_all_memory();
+
+    void print_all_memory_as_int();
+
+    void print_all_memory_as_char();
 
     /**
      * this is for testing purposes, it prints the whole freed memory linked list and information about each node.

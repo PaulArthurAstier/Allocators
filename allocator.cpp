@@ -427,6 +427,28 @@ void Memory_Linked_List::print_all_memory()
     }
 }
 
+void Memory_Linked_List::print_all_memory_as_int()
+{
+    for (auto i = m_initial; i != nullptr; i = i->next)
+    {
+        std::cout << "---------------------" << std::endl;
+        std::cout << "payload (int): " << (int)i->data[0] << std::endl;
+        std::cout << "size:          " << i->size << std::endl;
+        std::cout << "Used:          " << i->used << std::endl;
+    }
+}
+
+void Memory_Linked_List::print_all_memory_as_char()
+{
+    for (auto i = m_initial; i != nullptr; i = i->next)
+    {
+        std::cout << "---------------------" << std::endl;
+        std::cout << "payload (char): " << (char)i->data[0] << std::endl;
+        std::cout << "size:           " << i->size << std::endl;
+        std::cout << "Used:           " << i->used << std::endl;
+    }
+}
+
 void Memory_Linked_List::print_all_free_memory()
 {
     // go through the whole list
