@@ -11,14 +11,26 @@ class allocator_wrapper
 public:
     using value_type = T;
 
-    T* allocate(std::size_t n) noexcept;
+    T* allocate(std::size_t size) noexcept
+    {
+        intptr_t* ptr = mll.alloc(size * sizeof(T));
+        return reinterpret_cast<T*>(ptr);
+    }
 
-    void deallocate(T* p, std::size_t) noexcept;
+    void deallocate(T* data, std::size_t) noexcept
+    {
+        mll.free(reinterpret_cast<intptr_t*>(data));
+    }
+
+    template <typename U>
+    struct rebind
+    {
+        using other = allocator_wrapper<U>;
+    };
 
 private:
 
-    inline static Memory_Linked_List mll{};
+    Memory_Linked_List mll{};
 };
-
 
 #endif //ALLOCATOR_WRAPPER_H

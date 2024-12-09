@@ -1,5 +1,6 @@
 #include <iostream>
 #include "benchmark.cpp"
+#include "allocator_wrapper.h"
 
 #include <memory>
 #include <vector>
@@ -9,7 +10,20 @@
 
 int main()
 {
+    std::vector<int, allocator_wrapper<int>> vec;
 
+    // Add elements to the vector
+    vec.push_back(10);
+    vec.push_back(20);
+    vec.push_back(30);
+
+    // Print the elements
+    for (const auto& val : vec)
+    {
+        std::cout << val << std::endl;
+    }
+
+    return 0;
 
     
     return 0;
