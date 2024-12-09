@@ -2,8 +2,8 @@
 // Created by Paul-Arthur on 08/02/2023.
 //
 
-#ifndef ALLOCATORSANDMEMORYPOOL_ALLOCATOR_H
-#define ALLOCATORSANDMEMORYPOOL_ALLOCATOR_H
+#ifndef ALLOCATOR_H
+#define ALLOCATOR_H
 
 #include <cstdint>
 
@@ -279,4 +279,4 @@ private:
 
 };
 
-#endif //ALLOCATORSANDMEMORYPOOL_ALLOCATOR_H
+#endif //ALLOCATOR_H

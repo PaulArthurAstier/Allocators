@@ -7,20 +7,20 @@
 
 #include "allocator.h"
 
-// holds all the memory
-inline static Memory_Linked_List mll{};
+// // holds all the memory
+// inline static Memory_Linked_List mll{};
 
-// overriding the new operator
-void *operator new(std::size_t size)
-{
-    auto pointer = mll.alloc(size);
-    return pointer;
-}
+// // overriding the new operator
+// void *operator new(std::size_t size)
+// {
+//     auto pointer = mll.alloc(size);
+//     return pointer;
+// }
 
-// overriding the delete operator
-void operator delete(void *pointer) noexcept
-{
-    mll.free(static_cast<intptr_t *>(pointer));
-}
+// // overriding the delete operator
+// void operator delete(void *pointer) noexcept
+// {
+//     mll.free(static_cast<intptr_t *>(pointer));
+// }
 
-#endif // ALLOCATORSANDMEMORYPOOL_ALLOCATION_H
+ #endif // ALLOCATORSANDMEMORYPOOL_ALLOCATION_H
