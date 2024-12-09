@@ -1,42 +1,45 @@
 #include <iostream>
 #include "benchmark.cpp"
-#include "allocator_wrapper.h"
-
-#include <memory>
-#include <vector>
-#include <map>   
+#include "Allocation.h"
 
 // std::allocator
 
 int main()
 {
-    std::vector<int, allocator_wrapper<int>> vec;
+    // Using aliased vector
+    vector<int> vec = {1, 2, 3, 4, 5};
+    vec.push_back(6);
 
-    // Add elements to the vector
-    vec.push_back(10);
-    vec.push_back(20);
-    vec.push_back(30);
-
-    // Print the elements
+    std::cout << "Vector contents: ";
     for (const auto& val : vec)
     {
-        std::cout << val << std::endl;
+        std::cout << val << " ";
     }
+    std::cout << std::endl;
+
+    // Using aliased map
+    map<int, std::string> my_map;
+    my_map[1] = "one";
+    my_map[2] = "two";
+    my_map[3] = "three";
+
+    std::cout << "Map contents: ";
+    for (const auto& [key, value] : my_map)
+    {
+        std::cout << "{" << key << ", " << value << "} ";
+    }
+    std::cout << std::endl;
+
+    // Using aliased list
+    list<float> my_list = {1.1, 2.2, 3.3};
+    my_list.push_back(4.4);
+
+    std::cout << "List contents: ";
+    for (const auto& val : my_list)
+    {
+        std::cout << val << " ";
+    }
+    std::cout << std::endl;
 
     return 0;
-
-    
-    return 0;
-
-    // char *word0 = new char;
-    // *word0 = 'a';
-
-    // int *num1 = new int[5];
-    // *num1 = 1;
-
-    // mll.print_all_memory();
-    // std::cout << "<<<<<<<<freelist>>>>>>>>" << std::endl;
-    // mll.print_all_free_memory();
-
-    // return 0;
 }

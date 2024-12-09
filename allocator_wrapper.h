@@ -10,6 +10,16 @@ class allocator_wrapper
 {    
 public:
     using value_type = T;
+    using pointer = T*;
+    using const_pointer = const T*;
+    using size_type = std::size_t;
+    using difference_type = std::ptrdiff_t;
+
+    allocator_wrapper() noexcept = default;
+    ~allocator_wrapper() noexcept = default;
+
+    template <typename U>
+    allocator_wrapper(const allocator_wrapper<U>&) noexcept {}
 
     T* allocate(std::size_t size) noexcept
     {
@@ -21,6 +31,9 @@ public:
     {
         mll.free(reinterpret_cast<intptr_t*>(data));
     }
+
+    bool operator==(const allocator_wrapper&) const noexcept { return true; }
+    bool operator!=(const allocator_wrapper&) const noexcept { return false; }
 
     template <typename U>
     struct rebind

@@ -1,26 +1,37 @@
-//
-// Created by Paul-Arthur on 19/04/2023.
-//
-
 #ifndef ALLOCATORSANDMEMORYPOOL_ALLOCATION_H
 #define ALLOCATORSANDMEMORYPOOL_ALLOCATION_H
 
 #include "allocator.h"
+#include "allocator_wrapper.h"
 
-// // holds all the memory
-// inline static Memory_Linked_List mll{};
+#include <memory>
+#include <vector>
+#include <map>
+#include <list>
+#include <set> // Add this for std::set
 
-// // overriding the new operator
-// void *operator new(std::size_t size)
-// {
-//     auto pointer = mll.alloc(size);
-//     return pointer;
-// }
+inline static allocator_wrapper<intptr_t> memory{};
 
-// // overriding the delete operator
-// void operator delete(void *pointer) noexcept
-// {
-//     mll.free(static_cast<intptr_t *>(pointer));
-// }
+void* operator new(std::size_t size)
+{
+    return memory.allocate(size);
+}
 
- #endif // ALLOCATORSANDMEMORYPOOL_ALLOCATION_H
+void operator delete(void* pointer) noexcept
+{
+    memory.deallocate(static_cast<intptr_t*>(pointer), 0);
+}
+
+template <typename T>
+using vector = std::vector<T, allocator_wrapper<T>>;
+
+template <typename K, typename V>
+using map = std::map<K, V, std::less<K>, allocator_wrapper<std::pair<const K, V>>>;
+
+template <typename T>
+using list = std::list<T, allocator_wrapper<T>>;
+
+template <typename T>
+using set = std::set<T, std::less<T>, allocator_wrapper<T>>;
+
+#endif // ALLOCATORSANDMEMORYPOOL_ALLOCATION_H
