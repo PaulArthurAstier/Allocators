@@ -39,17 +39,78 @@ contiguous, and the operating system may impose restrictions on the size or loca
 
 ### Memory Mapping Implementaion
 
-In our case, we will be using `sbrk()` to manually move the brk pointer. In doing so, we can dynamically contract and expand the available space within the heap.
+In our case, we will be using two different implementations, `sbrk()` & `nmap()`. The sole reason in doing so is for the purpose of being able to expand on our research topic, implementing a custom allocator, by also comparing the performance through a series of benchmark tests. Both mechanisms use different system calls for memory allocation, thus meaning they embody different characteristics.We will break down the mechanism and characterstics, starting with `sbrk()`
 
-![img.png](img.png)
+#### sbrk():
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_Figure 1. Virtual memory layout_
+- The `sbrk()` mechanism puppeteers the program break. Essentially, this is what allows the heap to be expanded and contracted.
+
+![alt text](image.png)Figure 1. Virtual memory layout\_
+
+- Calling `sbrk()` with a postive argument increases the data segement size, internally adding more contiguous memory to the heap.
+
+- While calling `sbrk()` with a negative argument decreases the data segement size.
+
+- Simple Management - The heap grows linearly, simplifying the management system. Although, deallocation of memory with `sbrk()` is actually more complex as it invloves custom logic within the allocator itself.
+
+- Contiguous Memory - Beneficial for performance when dealing with sequential access patterns.
+
+- Portability - `sbrk()` caters for Unix.
+
+- Fragmentation Potentiality - Even though `sbrk()` abides by contiguous memory, constant allocation and deallocation of varying sizes can lead to external fragmentation. There is in fact sufficient memory in total but not in a individual contiguous block.
+
+#### `mmap():`
+
+- The `mmap()` system call creates a new mapping in virtual address space of a specific process.
+
+- `mmap()` maps files or devices into memory. This type of memory mapping is assocaited with a file on disk and is known as _file-backed_.
+
+- Moreover, `mmap()` can handle none file backed mapping. This is known as _anonymous_ mapping. A new region of virtual memory, private to the process, is created.
+
+- _Anonymous_ memory mapping allocates memory that is not associated with a file. This is useful for creating a private memory region for our alloacator.
+
+- There is number of key arguments to consider when using `mmap()`.
+
+  - _length_ - The length of the mapping bytes.
+  - _addr_ - The suggested starting address for the mapping.
+  - _flags_ - Flags that provide control of the mapping behaviour.
+    - `PROT_READ`
+    - `PROT_WRITE`
+    - `PROT_EXEC`
+    - `MAP_PRIVATE`
+    - `MAP_SHARED`
+    - `MAP_ANONYMOUS`
+  - _fd_ - File descriptor when mapping a file. It is set to -1 to indicate an anonymous mapping.
+  - _offset_ - Offset position in within the file to start the mapping from.
+
+## Benchmark Implementation
+
+In orser to benchmark and analyse the performance of `sbrk()`, `mmap()` and the standard C++ allocator, we can design tests to focus on key performance indicators.
+
+### Benchmark Design:
+
+- _Allocation Sizes_ - Test with a varied range of allocation sizes, categorised as: small, medium and large.
+
+  - _Small_ : 1 byte, 10 bytes, 100 bytes
+  - _Medium_ : 1 KB, 10 KB, 100 KB
+  - _Large_ : 1 MB, 10 MB, 100 MB
+
+- _Number of Allocation_ - We can use a varied number of allocations in each performed test. This will facilitate the evaluation of how the allocators scale with increased demand.
+
+- _Allocation Patterns_ - Use different allocation patterns, for example:
+  - Sequential Allocation
+  - Random Allocation
+  - Mixed workload of allocation.
+- _Metrics_
+  - Memory Usage
+  - Allocation Time
+  - Deallocation Time
+  - Fragmentation
 
 ## Basic Memory Management
 
 The first step building a memory management system is to figure out how to handle your data. There are many data structures that we could use, such as binary trees, hash tables or even graphs, but we will stick to the singly linked list. The diagram shows the workings of the linked list in a visual manner.
 
-![alt text](image-1.png)
 _Figure 2. Linked List Implementation_
 
 For each node of the linked list, we will create a Chunk, which will contain header data about the memory that we have stored.
@@ -70,7 +131,7 @@ With just these data variables defined and setup in the header, we are able to m
 
 Taking a closer look at just a single node(chunk) in our linked list, we can see it is made up of three seperate sections.
 
-![alt text](image.png)
+![alt text](image-1.png)
 _Figure 3. Structure of a single chunk_
 
 - Object Header

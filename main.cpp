@@ -10,7 +10,6 @@ int main()
     std::cout << "Scalar: " << *scalar << std::endl;
     delete scalar;
 
-    // Test array allocation
     int* array = new int[5]{1, 2, 3, 4, 5};
     std::cout << "Array: ";
     for (int i = 0; i < 5; ++i)
