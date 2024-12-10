@@ -22,6 +22,16 @@ void operator delete(void* pointer) noexcept
     memory.deallocate(static_cast<intptr_t*>(pointer), 0);
 }
 
+void* operator new[](std::size_t size)
+{
+    return memory.allocate(size);
+}
+
+void operator delete[](void* pointer) noexcept
+{
+    memory.deallocate(static_cast<intptr_t*>(pointer), 0);
+}
+
 template <typename T>
 using vector = std::vector<T, allocator_wrapper<T>>;
 

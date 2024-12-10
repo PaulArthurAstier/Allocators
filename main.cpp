@@ -6,7 +6,20 @@
 
 int main()
 {
-    // Using aliased vector
+    int* scalar = new int(42);
+    std::cout << "Scalar: " << *scalar << std::endl;
+    delete scalar;
+
+    // Test array allocation
+    int* array = new int[5]{1, 2, 3, 4, 5};
+    std::cout << "Array: ";
+    for (int i = 0; i < 5; ++i)
+    {
+        std::cout << array[i] << " ";
+    }
+    std::cout << std::endl;
+    delete[] array;
+
     vector<int> vec = {1, 2, 3, 4, 5};
     vec.push_back(6);
 
@@ -17,7 +30,6 @@ int main()
     }
     std::cout << std::endl;
 
-    // Using aliased map
     map<int, std::string> my_map;
     my_map[1] = "one";
     my_map[2] = "two";
@@ -30,7 +42,6 @@ int main()
     }
     std::cout << std::endl;
 
-    // Using aliased list
     list<float> my_list = {1.1, 2.2, 3.3};
     my_list.push_back(4.4);
 
