@@ -30,14 +30,13 @@ public:
     /**
      * pointer to next chunk.
      */
-    Chunk* next;
+    Chunk *next;
 
     /**
      * Payload.
      * Users memory.
      */
     intptr_t data[1];
-
 };
 
 /**
@@ -61,14 +60,16 @@ public:
      *
      * free_list creates a new linked list of the free Chunks, and will go through that list when reusing memory .
      */
-    enum class search_mode{
+    enum class search_mode
+    {
         first_fit,
         next_fit,
         best_fit,
         free_list,
     };
 
-    enum class mmap_mode{
+    enum class mmap_mode
+    {
         sbrk,
         mmap,
     };
@@ -79,6 +80,8 @@ public:
     search_mode m_search_mode = search_mode::free_list;
 
     mmap_mode m_mmap_mode = mmap_mode::mmap;
+
+    void set_search_mode(search_mode mode); // Declaration for setting searchmode for benchmark test
 
     /**
      * Initialises the link list. It sets all of the member variables to nullptr.
@@ -96,17 +99,17 @@ public:
      * @param size the size that the user wants to store.
      * @return the payload pointer to the data.
      */
-    intptr_t* alloc(std::size_t size);
+    intptr_t *alloc(std::size_t size);
 
-     /**
-      * Sets the used flag of a Chunk to false.
-      *
-      * By setting the used flag to false, the Chunk is marked to be reused when a new Chunk of memory is being
-      * requested. If the free_list option has been selected, it will instead put the freed chunk in its own linked list
-      *
-      * @param data a pointer of the memory that is being freed.
-      */
-     void free(intptr_t *data);
+    /**
+     * Sets the used flag of a Chunk to false.
+     *
+     * By setting the used flag to false, the Chunk is marked to be reused when a new Chunk of memory is being
+     * requested. If the free_list option has been selected, it will instead put the freed chunk in its own linked list
+     *
+     * @param data a pointer of the memory that is being freed.
+     */
+    void free(intptr_t *data);
 
     /**
      *  Returns a Chunk within the memory.
@@ -117,9 +120,9 @@ public:
      * @note This function is copied from Writing a Memory Allocator by Dmitry Soshnikov, as I am not exactly sure how
      * it works. Link (http://dmitrysoshnikov.com/compilers/writing-a-memory-allocator/).
      */
-    static Chunk* get_header(intptr_t* data)
+    static Chunk *get_header(intptr_t *data)
     {
-        return (Chunk*)((char*)data + sizeof(std::declval<Chunk>().data) - sizeof(Chunk));
+        return (Chunk *)((char *)data + sizeof(std::declval<Chunk>().data) - sizeof(Chunk));
     }
 
     /**
@@ -132,10 +135,7 @@ public:
      */
     void print_all_free_memory();
 
-
-
 private:
-
     /**
      * align returns the memory needed for the storage of the data. This is specifically made for x64 machines, as it
      * returns 8, 16, 32... etc. This always rounds up, eg(if data is 13 bytes, it will allocate 16 bytes).
@@ -165,7 +165,7 @@ private:
      * @param size amount of bytes that needs to be stored.
      * @return the program break pointer.
      */
-    Chunk* memory_map(std::size_t size);
+    Chunk *memory_map(std::size_t size);
 
     Chunk *memory_map_mmap(std::size_t size);
 
@@ -179,7 +179,7 @@ private:
      * @param size Minimum size being requested
      * @return A pointer to the free, adequate chunk, or nullptr if none were found.
      */
-    Chunk* first_fit(std::size_t size);
+    Chunk *first_fit(std::size_t size);
 
     /**
      * Works like first_fit(), but when a free Chunk of memory is found, its position is tracked. It is tracked with the
@@ -190,7 +190,7 @@ private:
      * @param size the size that is requested for new memory
      * @return a pointer of a freed Chunk, or nullptr if none were found.
      */
-    Chunk* next_fit(std::size_t size);
+    Chunk *next_fit(std::size_t size);
 
     /**
      * best_fit() will seek the best possible Chunk in terms of size.
@@ -203,7 +203,7 @@ private:
      * @param size size that is requested for new memory
      * @return a pointer of a freed Chunk, or nullptr if none were found.
      */
-    Chunk* best_fit(std::size_t size);
+    Chunk *best_fit(std::size_t size);
 
     /**
      *  Creates and manges a linked list for free Chunks.
@@ -214,7 +214,7 @@ private:
      *
      * @param chunk the Chunk being removed.
      */
-    void free_listing(Chunk* chunk);
+    void free_listing(Chunk *chunk);
 
     /**
      * Reuses Chunks from the freed list, and moving them to the memory linked list.
@@ -224,8 +224,7 @@ private:
      * @param size the size needed for memory
      * @return the chunk that is being reused.
      */
-    Chunk* free_list(std::size_t size);
-
+    Chunk *free_list(std::size_t size);
 
     /**
      * this function chooses which search mode is used for block reuse.
@@ -233,7 +232,7 @@ private:
      * @param size the memory needed to allocate.
      * @return a pointer the the reused chunk, or a nullptr if there is no available free Chunk.
      */
-    Chunk* find_chunk(std::size_t size);
+    Chunk *find_chunk(std::size_t size);
 
     /** ---------------------------------------------------------------------------------------------------------------
      * Member variables
@@ -242,37 +241,35 @@ private:
     /**
      * initial start of the linked list
      */
-    Chunk* m_initial;
+    Chunk *m_initial;
     /**
      * The start of the linked list.
      */
-    Chunk* m_start;
+    Chunk *m_start;
     /**
      * The end of the linked list.
      */
-    Chunk* m_end;
+    Chunk *m_end;
 
     /**
      * Used in the next_fit search mode, it keeps track of the last found free chunk
      */
-    Chunk* m_next_fit_chunk;
-
+    Chunk *m_next_fit_chunk;
 
     /**
      * initial Chunk in the freed list
      */
-    Chunk* f_list_initial;
+    Chunk *f_list_initial;
 
     /**
      * the first Chunk in the freed list
      */
-    Chunk* f_list_start;
+    Chunk *f_list_start;
 
     /**
      * the last Chunk in the freed list
      */
-    Chunk* f_list_end;
-
+    Chunk *f_list_end;
 };
 
-#endif //ALLOCATORSANDMEMORYPOOL_ALLOCATOR_H
+#endif // ALLOCATORSANDMEMORYPOOL_ALLOCATOR_H

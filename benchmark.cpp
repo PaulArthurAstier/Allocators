@@ -1,22 +1,27 @@
 #include <iostream>
 #include <chrono>
 #include <vector>
+#include <array>
 #include "Allocation.h"
 #include "timer.cpp"
 
-void benchmark_allocation(int number_of_allocations, std::size_t size, Memory_Linked_List::mmap_mode mode)
+void benchmark_allocation(int number_of_allocations, std::size_t size, Memory_Linked_List::mmap_mode mode, Memory_Linked_List::search_mode search = Memory_Linked_List::search_mode::first_fit)
 {
-    mll.m_mmap_mode = mode;
-    std::vector<intptr_t *> pointers;
-    { // Allocation Time
-        Timer timer;
+    mll.m_mmap_mode = mode;           // Sets the memory allocation method for the custom allocator.
+    mll.set_search_mode(search);      // Sets the search mode for the custom allocator.
+    std::vector<intptr_t *> pointers; // Creates a vector to store pointers to the allocated memory blocks.
 
-        for (int i = 0; i < number_of_allocations; i++)
+    {                // Allocation Time
+        Timer timer; // An instance of the Timer class is created to measure the allocation time.
+
+        for (int i = 0; i < number_of_allocations; i++) // Loop allocates blocks of memory, each of size elements, using the custom allocator.
         {
             pointers.push_back(new intptr_t[size]);
         }
 
-        std::cout << "Allocation time for " << number_of_allocations << " blocks of size " << size << std::endl;
+        std::cout << "Allocation time for " << number_of_allocations << " blocks of size " << size
+                  << " utilising " << (mode == Memory_Linked_List::mmap_mode::sbrk ? "sbrk" : "mmap")
+                  << " and " << (search == Memory_Linked_List::search_mode::first_fit ? "first_fit" : (search == Memory_Linked_List::search_mode::next_fit ? "next_fit" : (search == Memory_Linked_List::search_mode::best_fit ? "best_fit" : "free_list"))) << std::endl;
     }
 
     { // Deallocation Time
@@ -27,7 +32,10 @@ void benchmark_allocation(int number_of_allocations, std::size_t size, Memory_Li
             delete[] ptr;
         }
         std::cout << std::endl;
-        std::cout << "Deallocation time for " << number_of_allocations << " blocks of size " << size << std::endl;
+        std::cout << "Deallocation time for " << number_of_allocations << " blocks of size " << size
+                  << " utilising " << (mode == Memory_Linked_List::mmap_mode::sbrk ? "sbrk" : "mmap")
+                  << " and " << (search == Memory_Linked_List::search_mode::first_fit ? "first_fit" : (search == Memory_Linked_List::search_mode::next_fit ? "nex_fit" : (search == Memory_Linked_List::search_mode::best_fit ? "best_fit" : "free_list"))) << std::endl;
+        std::cout << std::endl;
     }
 }
 
@@ -67,15 +75,47 @@ void benchmark_std_allocator(int number_of_allocations, std::size_t size)
 
 void runBenchmarks()
 {
-    std::cout << "Benchmarking with sbrk:" << std::endl;
-    std::cout << std::endl;
-    benchmark_allocation(1000, 1, Memory_Linked_List::mmap_mode::sbrk);
-    std::cout << std::endl;
-    std::cout << "Benchmarking with mmap:" << std::endl;
-    std::cout << std::endl;
-    benchmark_allocation(1000, 1, Memory_Linked_List::mmap_mode::mmap);
-    std::cout << std::endl;
-    std::cout << "Benchmarking with std::allocator:" << std::endl;
-    benchmark_std_allocator(1000, 1);
-    std::cout << std::endl;
+
+    /*
+     * A fixed size C std array to hold the memory map modes
+     * A fixed size C std array to hold the search modes.
+     * A vector holding the differnent allocation sizes.
+     */
+    std::array<Memory_Linked_List::mmap_mode, 2> modes = {Memory_Linked_List::mmap_mode::sbrk, Memory_Linked_List::mmap_mode::mmap};
+    std::array<Memory_Linked_List::search_mode, 4> search_modes = {Memory_Linked_List::search_mode::first_fit, Memory_Linked_List::search_mode::next_fit, Memory_Linked_List::search_mode::best_fit, Memory_Linked_List::search_mode::free_list};
+    std::vector<std::size_t> allocationSizes = {1, 10, 100, 1000};
+
+    /*
+     * Nested for loops to iterate through all the possible mode combinations.
+     * Most Outer loop iterates through the memory map modes.
+     * Inner middle loop iterates through the search modes.
+     * Inner loop iterates through the different sizes of allocation.
+     * The funtion call defines the the no. of allocations, size of each allocation and modal combination.
+     */
+    for (auto mode : modes)
+    {
+        for (auto search : search_modes)
+        {
+            for (std::size_t size : allocationSizes)
+            {
+
+                std::cout << "Benchmarking with" << (mode == Memory_Linked_List::mmap_mode::sbrk ? " sbrk" : " mmap")
+                          << " and " << (search == Memory_Linked_List::search_mode::first_fit ? "first_fit" : (search == Memory_Linked_List::search_mode::next_fit ? "next_fit" : (search == Memory_Linked_List::search_mode::best_fit ? "best_fit" : "free_list")))
+                          << ":" << std::endl;
+
+                benchmark_allocation(100, size, mode, search);
+                std::cout
+                    << std::endl;
+            }
+        }
+
+        // The function below benchmarks the std::allocator with the same set of allocation sizes.
+        std::cout << "Benchmarking with std::allocator:" << std::endl;
+        for (std::size_t size : allocationSizes)
+
+        {
+            benchmark_std_allocator(1000, size);
+            std::cout << std::endl;
+        }
+    };
 }

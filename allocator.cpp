@@ -127,6 +127,12 @@ Chunk *Memory_Linked_List::memory_map_sbrk(std::size_t size)
     return chunk;
 }
 
+// Implementation for search mode setting.
+void Memory_Linked_List::set_search_mode(Memory_Linked_List::search_mode mode)
+{
+    m_search_mode = mode;
+}
+
 void Memory_Linked_List::free(intptr_t *data)
 {
     // gets chunk that is being freed

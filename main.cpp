@@ -17,17 +17,6 @@ int main()
     std::cout << "<<<<<<<<freelist>>>>>>>>" << std::endl;
     mll.print_all_free_memory();
 
-    // int value = 0;
-    // {
-    //     Timer timer;
-    //     int value = 0;
-    //     for (int i = 0; i < 1000000; i++)
-    //         value += 2;
-
-    //     std::cout << value << std::endl;
-    //     return value;
-    // }
-
     runBenchmarks();
 
     return 0;
