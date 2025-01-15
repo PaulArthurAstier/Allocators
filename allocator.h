@@ -136,7 +136,7 @@ public:
      */
     void print_all_free_memory();
 
-
+    ~Memory_Linked_List() = default;
 
 private:
 

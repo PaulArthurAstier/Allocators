@@ -51,5 +51,17 @@ int main()
     }
     std::cout << std::endl;
 
+    vector<std::basic_string<char, std::char_traits<char>, allocator_wrapper<char>>> vecv{
+        "Hello very long string that won't feet into 32 bytes of the buffer that's in the string",
+        "Hello very long string that won't feet into 32 bytes of the buffer that's in the string",
+        "Hello very long string that won't feet into 32 bytes of the buffer that's in the string",
+        "Hello very long string that won't feet into 32 bytes of the buffer that's in the string",
+        "Hello very long string that won't feet into 32 bytes of the buffer that's in the string"
+
+    };
+
+    for (auto&& s: vecv)
+        std::cout << s << '\n';
+
     return 0;
 }
