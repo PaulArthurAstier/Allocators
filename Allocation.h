@@ -10,6 +10,11 @@
 #include <list>
 #include <set> 
 
+/**
+ * This file is just used to override standard containers and
+ * allocators.
+ */
+
 inline static allocator_wrapper<intptr_t> memory{};
 
 void* operator new(std::size_t size)
