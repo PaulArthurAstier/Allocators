@@ -39,13 +39,14 @@ contiguous, and the operating system may impose restrictions on the size or loca
 
 ### Memory Mapping Implementaion
 
-In our case, we will be using two different implementations, `sbrk()` & `nmap()`. The sole reason in doing so is for the purpose of being able to expand on our research topic, implementing a custom allocator, by also comparing the performance through a series of benchmark tests. Both mechanisms use different system calls for memory allocation, thus meaning they embody different characteristics.We will break down the mechanism and characterstics, starting with `sbrk()`
+In our case, we will be using two different implementations, `sbrk()` & `nmap()`. The sole reason in doing so is for the purpose of being able to expand on our research topic, implementing a custom allocator, by also comparing the performance through a series of benchmark tests. Both mechanisms use different system calls for memory allocation, thus meaning they embody different characteristics. We will break down the mechanism and characterstics, starting with `sbrk()`.
 
 #### sbrk():
 
 - The `sbrk()` mechanism puppeteers the program break. Essentially, this is what allows the heap to be expanded and contracted.
 
-![alt text](image.png)Figure 1. Virtual memory layout\_
+![alt text](Images/img.png)                            
+_Figure 1. Virtual memory layout_
 
 - Calling `sbrk()` with a postive argument increases the data segement size, internally adding more contiguous memory to the heap.
 
@@ -85,7 +86,7 @@ In our case, we will be using two different implementations, `sbrk()` & `nmap()`
 
 ## Benchmark Implementation
 
-In orser to benchmark and analyse the performance of `sbrk()`, `mmap()` and the standard C++ allocator, we can design tests to focus on key performance indicators.
+In order to benchmark and analyse the performance of `sbrk()`, `mmap()` and the standard C++ allocator, we can design tests to focus on key performance indicators.
 
 ### Benchmark Design:
 
@@ -122,17 +123,17 @@ The header data that is included in a chunk:
 
 - Flag (Used)
 
-  - The used flag indicates whether the chunk is currently allocated. When set to false, it's available for allocation.
+  - The used flag indicates whether the chunk is currently allocated. When set to false, it's available to be reallocated. 
 
 - Pointer (Next)
   - The next pointer is what allows the linked list to actually be formed. Its a pointer that points to the next chunk in a the linked list. When set to null determines the end of the linked list.
 
-With just these data variables defined and setup in the header, we are able to manage and traverse our memory Pool
+With just these data variables defined and setup in the header, we are able to manage and traverse our memory Pool.
 
-Taking a closer look at just a single node(chunk) in our linked list, we can see it is made up of three seperate sections.
+Taking a closer look at just a single node(chunk) in our linked list, we can see it is made up of three seperate sections, as well as the payload.
 
-![alt text](image-1.png)
-_Figure 3. Structure of a single chunk_
+![alt text](Images/image-1.png)
+_Figure 2. Structure of a single chunk_
 
 - Object Header
 
@@ -145,7 +146,7 @@ _Figure 3. Structure of a single chunk_
 - Alignment
   - This section is simply a padding used to align the chunk correctly in memory. The alignment is usually a multiple of the largest primitive type. On a x64 architechture this is usually 8 bytes.
 
-Inorder to get a better understanding of the alignment section, we can create a simple theoretical example.
+In order to get a better understanding of the alignment section, we can create a simple theoretical example.
 
 Given that the object header contains 24 bytes and the Payload contains 64 bytes :
 
@@ -169,3 +170,56 @@ Given that the object header contains 24 bytes and the Payload contains 64 bytes
 - Although, the header needs 7 bytes of padding to ensure that the 'next' pointer starts at an 8 byte aligned memory address.
 
 - If the payload doesn't end on an 8-byte boundary, extra bytes are added at the end of the chunk to ensure the total chunk size is aligned to 8 bytes. This is what is being represented in the diagram above.
+
+![alt text](Images/image.png)
+_Figure 3. Padding is added to the object header as N_
+
+## Memory Linked-List
+
+The chosen algorithm for the memory pool is a singly linked list, which can be managed using different types of algorithms. When data is requested by the user, a chunk is created on the heap, and is added at the end of the list. When the user frees data, the chunk used flag is set to false, which means it needs to be reused.
+
+This section will talk about how the memory is managed, with the types of reuse algorithms implemented, and the functions used to map and store memory.
+
+### Search Algorithms
+
+Most of the work done in the memory linked list class is the search algorithms when resuing data. When the user frees data, the class simply marks the chunks used flag to false. The difficult part comes when reusing this chunk for new data. Chunks can only be reused if the new data is the same or smaller in size then the unused chunk.
+
+There are multiple ways to find chunks within the linked-list, and we implemented some of these in the class. The search algorithm can be selected within the class, depending on waht the user needs.
+
+#### First Fit:
+
+    This algorithm is very simple, and it goes through the entire linked-list from top to bottom, checking each node if thier flag is flase, and if it has the minimum required size.
+
+#### Next Fit:
+
+    Similarly to first fit, it goes through the list from top to bottom. However, once a suitable chunk is found, its placement is stored so the algorithm doesnt have to start from the beggining again, making it slightly more efficient.
+
+#### Best Fit:
+
+    This algorithms goal is to find a chunk that best matches the data requested. First it goes throught the whole list checking if they are chunks that are big enough to be used. Then it will go through the biggest ones, storing a usable chunk. This is reapeated with a size under, until no usauble chunks are found, using the last store chunk.
+
+#### Free Listing:
+
+    Free Listing algorithm uses a whole different linked list to store freed chunks. When a chunk is freed, instead of just setting the flag to false, the free function will also rearrange the memory list, putting the freed chunk at the end of the freed list. When the user requests memory, all the class has to do is to look through the free list, instead of the whole memory.
+
+### Allocator
+
+The allocator functions goes through a couple of steps when called.
+
+- Aligning
+- Reusing (if avialble)...
+- ... Or allocating on the heap
+- Adding the new chunk to the list...
+- ... Or initialising the linked list
+
+The function `alloc(std::size_t)` is what the class uses to request memory from the OS. The argument `std::size_t` is the bytes of memory requested from the user. Either `sbrk()` or `mmap()` can be specified when allocating memory. The very first thing the allocator does is to find the minimum size required for the data to be aligned. 
+
+After aligning, the function will first look if they are chunks that could be reused, using the chosen algorithm by the user. If a chunk was found, then the function will return this pointer to the user, so they can rewritte and re user it. If no chunks where found, then the function continues.
+
+If the function continues, it will request memory from the heap using the alignment amount of bytes. This will be done either with `sbrk()` or `mmap`, and will return a non nullptr chunk. The returned chunk header will be intialized, setting the siae and putting the used flag to true.
+
+Once the chunk is initialized, it will be added to the memory linked list. If the list already exists, it is sipmly added to the end. If the linked list does not exists, then it will be initialized, with the new chunk being the start. Once everything is done, the function will return the pointer to the chunks payload data.
+
+
+
+
