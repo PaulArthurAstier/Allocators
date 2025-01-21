@@ -78,6 +78,9 @@ public:
      */
     search_mode m_search_mode = search_mode::first_fit;
 
+    /**
+     * the allocator chosen when allocating
+     */
     mmap_mode m_mmap_mode = mmap_mode::mmap;
 
     /**
@@ -127,8 +130,14 @@ public:
      */
     void print_all_memory();
 
+    /**
+     * prints all the memory as int
+     */
     void print_all_memory_as_int();
 
+    /**
+     * prints all the memory as char
+     */
     void print_all_memory_as_char();
 
     /**
@@ -136,6 +145,9 @@ public:
      */
     void print_all_free_memory();
 
+    /**
+     * A default destructor to give memory back to the OS when the class is not used anymore.
+     */
     ~Memory_Linked_List() = default;
 
 private:
@@ -162,6 +174,14 @@ private:
     std::size_t allocSize(std::size_t size);
 
     /**
+     * This function simply selects the allocator, etheir sbrk or mmap.
+     * 
+     * @param size The amount of bytes that the user wants to store
+     */
+    Chunk* memory_map(std::size_t size);
+
+    /**
+     * The mmap allocator.
      * returns the program break pointer (heap pointer) and makes sure that it will not go out of memory (OOM). It
      * returns the program break, and it also does a check if it is possible to allocate this chunk, and if it is not
      * possible, to returns nullptr.
@@ -169,10 +189,17 @@ private:
      * @param size amount of bytes that needs to be stored.
      * @return the program break pointer.
      */
-    Chunk* memory_map(std::size_t size);
-
     Chunk *memory_map_mmap(std::size_t size);
 
+    /**
+     * The sbrk allocator.
+     * returns the program break pointer (heap pointer) and makes sure that it will not go out of memory (OOM). It
+     * returns the program break, and it also does a check if it is possible to allocate this chunk, and if it is not
+     * possible, to returns nullptr.
+     *
+     * @param size amount of bytes that needs to be stored.
+     * @return the program break pointer.
+     */
     Chunk *memory_map_sbrk(std::size_t size);
 
     /**

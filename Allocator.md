@@ -41,12 +41,12 @@ contiguous, and the operating system may impose restrictions on the size or loca
 
 In our case, we will be using two different implementations, `sbrk()` & `nmap()`. The sole reason in doing so is for the purpose of being able to expand on our research topic, implementing a custom allocator, by also comparing the performance through a series of benchmark tests. Both mechanisms use different system calls for memory allocation, thus meaning they embody different characteristics. We will break down the mechanism and characterstics, starting with `sbrk()`.
 
-#### sbrk():
-
-- The `sbrk()` mechanism puppeteers the program break. Essentially, this is what allows the heap to be expanded and contracted.
-
 ![alt text](Images/img.png)                            
 _Figure 1. Virtual memory layout_
+
+#### `sbrk():`
+
+- The `sbrk()` mechanism puppeteers the program break. Essentially, this is what allows the heap to be expanded and contracted.
 
 - Calling `sbrk()` with a postive argument increases the data segement size, internally adding more contiguous memory to the heap.
 
@@ -212,14 +212,37 @@ The allocator functions goes through a couple of steps when called.
 - Adding the new chunk to the list...
 - ... Or initialising the linked list
 
-The function `alloc(std::size_t)` is what the class uses to request memory from the OS. The argument `std::size_t` is the bytes of memory requested from the user. Either `sbrk()` or `mmap()` can be specified when allocating memory. The very first thing the allocator does is to find the minimum size required for the data to be aligned. 
+The function `alloc(std::size_t)` is what the class uses 
+to request memory from the OS. The argument `std::size_t` 
+is the bytes of memory requested from the user. Either 
+`sbrk()` or `mmap()` can be specified when allocating 
+memory. The very first thing the allocator does is to 
+find the minimum size required for the data to be aligned. 
 
-After aligning, the function will first look if they are chunks that could be reused, using the chosen algorithm by the user. If a chunk was found, then the function will return this pointer to the user, so they can rewritte and re user it. If no chunks where found, then the function continues.
+After aligning, the function will first look if they are 
+chunks that could be reused, using the chosen algorithm by
+ the user. If a chunk was found, then the function will 
+ return this pointer to the user, so they can rewritte and 
+ re user it. If no chunks where found, then the function 
+ continues.
 
-If the function continues, it will request memory from the heap using the alignment amount of bytes. This will be done either with `sbrk()` or `mmap`, and will return a non nullptr chunk. The returned chunk header will be intialized, setting the siae and putting the used flag to true.
+If the function continues, it will request memory 
+from the heap using the alignment amount of bytes. 
+This will be done either with `sbrk()` or `mmap`, and 
+will return a non nullptr chunk. The returned chunk header 
+will be intialized, setting the siae and putting the used 
+flag to true.
 
-Once the chunk is initialized, it will be added to the memory linked list. If the list already exists, it is sipmly added to the end. If the linked list does not exists, then it will be initialized, with the new chunk being the start. Once everything is done, the function will return the pointer to the chunks payload data.
+Once the chunk is initialized, it will be added to 
+the memory linked list. If the list already exists, it 
+is sipmly added to the end. If the linked list does not 
+exists, then it will be initialized, with the new chunk 
+being the start. Once everything is done, the function 
+will return the pointer to the chunks payload data, so 
+the user can use it.
 
+### Helper Functions
 
+The `alloc()` function needs a lot of helper funcitons
 
 
