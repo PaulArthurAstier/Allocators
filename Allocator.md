@@ -212,8 +212,8 @@ The allocator functions goes through a couple of steps when called.
 - Adding the new chunk to the list...
 - ... Or initialising the linked list
 
-The function `alloc(std::size_t)` is what the class uses 
-to request memory from the OS. The argument `std::size_t` 
+The function `alloc(size)` is what the class uses 
+to request memory from the OS. The argument `size` 
 is the bytes of memory requested from the user. Either 
 `sbrk()` or `mmap()` can be specified when allocating 
 memory. The very first thing the allocator does is to 
@@ -243,6 +243,27 @@ the user can use it.
 
 ### Helper Functions
 
-The `alloc()` function needs a lot of helper funcitons
+The `alloc()` function needs a lot of helper funcitons 
+to make the allocation of the data work. Some of these 
+functions are wuite simple, and some are there to manage 
+settings such as the type of allocator used.
 
+#### `align(size):`
+      
+    align(size) is a simple function that finds the minimum bytes needed for the data that needs to be allocated. It starts with a minimum target size of 8 bytes, and compares it to the passed argument size. If size is bigger, then align will double the target size until it is bigger the size provided. This ensures that the chunk is aligned, making it fit within the hexadecimal architecture.
 
+#### `alocSize():`
+
+    Similarly to align, this will return the size of the chunk to be allocated. It returns the size of the data that needs to be allocated, plus the size of the header. The header however, already has the first pointer of the user data, so it is subtracted.  
+
+#### `free()`
+
+    Free is used to mark chunks for reuse, and all it does is set the used flag to false. If the freelisting setting is selected, then it will also put the chunk in the free list.
+
+#### `getheader()`
+
+    This function is used to get the header of the chunk. When the user allocates data, they only get the pointer of the data, and has no access to the header. When data is being freed, the system needs to get back to the header, so it can set its flag to false.
+
+## Standard Container Wrapper
+
+The allocator only works when the user manually calls it, and does not work with c++ standard containers such as vectors, maps, and lists. To make the allocator work with standard containers, a wrapper class is needed. The wrapper adds important functionalities wich the standard containers need to opperate.
