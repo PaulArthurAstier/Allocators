@@ -266,4 +266,11 @@ settings such as the type of allocator used.
 
 ## Standard Container Wrapper
 
-The allocator only works when the user manually calls it, and does not work with c++ standard containers such as vectors, maps, and lists. To make the allocator work with standard containers, a wrapper class is needed. The wrapper adds important functionalities wich the standard containers need to opperate.
+The allocator only works when the user manually calls it,
+ and does not work with c++ standard containers such as 
+ vectors, maps, and lists. To make the allocator work with 
+ standard containers, a wrapper class is needed. 
+ The wrapper adds important functionalities wich the 
+ standard containers need to opperate.
+
+ 
