@@ -1,6 +1,6 @@
 # Allocators
 
-###### by Paul-Arthur Astier 495122
+###### by Paul-Arthur Astier 495122 and Enrico Robinson 486805
 
 Allocators are an important part of the C++ programming language, as they are responsible for managing the allocation
 and deallocation of memory. In this blog series, we'll take an in-depth look at C++ allocators, including their usage,
@@ -345,17 +345,100 @@ settings such as the type of allocator used.
 
     This function is used to get the header of the chunk. When the user allocates data, they only get the pointer of the data, and has no access to the header. When data is being freed, the system needs to get back to the header, so it can set its flag to false.
 
-## Standard Container Wrapper [9]
+## Standard Container Wrapper
 
-The allocator only works when the user manually calls it,
- and does not work with c++ standard containers such as 
- vectors, maps, and lists. To make the allocator work with 
- standard containers, a wrapper class is needed. 
- The wrapper adds important functionalities wich the 
- standard containers need to opperate.
+Originally, the custom allocator operated only through direct function calls. This meant the inclusion of C++ Standandard Template Library (STL) containers like std::vector, std::map and std::list. This limitation posed an obstacle, as it disallows smooth utilisation of the custom allocator with these containers.
+
+To seamlessly integrate the custom allocator with C++ STL containers, a vital adaptation layer is required. This section introduces the Standard Container Wrapper, a crucial wrapper class that acts as an adapter. The wrapper conforms to the STL interface, while delegating predetermined memory opertaions to the underlying custom Memory_Linked_List allocator.
+
+As this solution effectively connects the gap between the custom memory managment and C++ STL containers, we'll delve deeper into the wrappers implementation.
+
+1. **Template Class:**
 
 
-## Sources 
+        template <typename T>
+        class allocator_wrapper
+
+
+- This code turns the following wrapper class into a template, allowing it to be used with any data type (T).
+
+2. **Standard Allocator Interface:**
+
+
+        using value_type = T;
+        using pointer = T*;
+        using const_pointer = const T*;
+        using size_type = std::size_t;
+        using difference_type = std::ptrdiff_t;
+
+- The type aliases are necessary for STL to interact with the allocator. They define the standard types for the custom allocator to work within the STL framework.
+
+3. **Constructor and Destructor:**
+
+
+        allocator_wrapper() noexcept = default;
+        ~allocator_wrapper() noexcept = default;
+
+        template <typename U>
+        allocator_wrapper(const allocator_wrapper<U>&) noexcept {}
+
+- The constructor & deconstructor are assigned to default, while the copy constructor template provides compatibility when copying or assigning containers with a possible diffenece in allocator type.
+
+4. **allocate():**
+
+
+        T* allocate(std::size_t size) noexcept
+        {
+          intptr_t* ptr = mll.alloc(size * sizeof(T));
+          return reinterpret_cast<T*>(ptr);
+        }
+
+
+
+- This is the core of the allocator template. It receive the specifed size and then calls the mll.alloc(), which allocates enough memory for size number of elements of type *T*.
+  The returned intptr_t is then casted to a T\*.
+
+5. **deallocate():**
+
+        void deallocate(T* data, std::size_t) noexcept
+          {
+            // Cast back to intptr_t* before freeing the memory.
+            mll.free(reinterpret_cast<intptr_t*>(data));
+          }
+
+
+- This function frees the memory allocated by allocate(). It receives the pointer, cast it then passes it to the mll.free().
+
+6. **Comparison Operators:**
+
+
+        bool operator==(const allocator_wrapper&) const noexcept { return true; }
+
+        bool operator!=(const allocator_wrapper&) const noexcept { return false; }
+
+- This implementation is required to define all instances of allocator_wrapper as equal.
+
+7. **rebind Struct:**
+
+        template <typename U>
+            struct rebind
+            {
+                using other = allocator_wrapper<U>;
+            };
+
+
+- This is a major component for the STL compatibility. The rebind Struct allows the containers to gather an allocator for a different type 'U' from the allocator for type 'T'.
+
+8. **Memory_Linked_List Member**:
+
+        private:
+            Memory_Linked_List mll{};
+
+- This private member mll of type Memory_Linked_List is an instance of the custom memory allocator that allocator_wrapper uses to perform the actuall allocationa and deallocation.
+
+In essence, each allocator wrapper instance has its own Memory_Linked_List object, allowing the use of the custom allocator with standard containers.
+
+## Sources
 
 [1]
 Ankit_Bisht, “Stack vs Heap Memory Allocation - GeeksforGeeks,” GeeksforGeeks, Dec. 26, 2018. https://www.geeksforgeeks.org/stack-vs-heap-memory-allocation/
@@ -383,6 +466,4 @@ Dmitry Soshnikov, “Writing a Memory Allocator,” Dmitry Soshnikov, Feb. 06, 2
 
 [9]
 “std::allocator - cppreference.com,” en.cppreference.com. https://en.cppreference.com/w/cpp/memory/allocator
-
-‌
-‌
+\
