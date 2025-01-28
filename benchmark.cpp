@@ -16,7 +16,7 @@ void benchmark_allocation(int number_of_allocations, std::size_t size, Memory_Li
 
         for (int i = 0; i < number_of_allocations; i++) // Loop allocates blocks of memory, each of size elements, using the custom allocator.
         {
-            pointers.push_back(new intptr_t[size]);
+            pointers.push_back(new intptr_t[size]); // Allocates a new block of memory by adding the address of the newly allocated memory block to the pointers vector.
         }
 
         std::cout << "Allocation time for " << number_of_allocations << " blocks of size " << size
