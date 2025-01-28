@@ -17,11 +17,11 @@ for implementation and other possible algorithm that could have been used.
 Before we can start, we have to talk about the heap and the stack. The heap and the stack are the two fundamental
 concepts of memory and its management.
 
-### The Stack 
+### The Stack
 
 The stack is a region of memory that is used for storing local variables and function call frames. When a function is
 called, a new stack frame is created, and local variables for that function are allocated on the stack. When the
-function returns, the stack frame is deallocated, freeing the memory used by the local variables. 
+function returns, the stack frame is deallocated, freeing the memory used by the local variables.
 
 ### The Heap
 
@@ -39,7 +39,7 @@ contiguous, and the operating system may impose restrictions on the size or loca
 
 In our case, we will be using two different implementations, `sbrk()` & `mmap()`. The sole reason in doing so is for the purpose of being able to expand on our research topic, implementing a custom allocator, by also comparing the performance through a series of benchmark tests. Both mechanisms use different system calls for memory allocation, thus meaning they embody different characteristics. We will break down the mechanism and characterstics, starting with `sbrk()`.
 
-![alt text](Images/img.png)                            
+![alt text](Images/img.png)  
 _Figure 1. Virtual memory layout [2]_
 
 #### `sbrk():` [3]
@@ -110,7 +110,7 @@ _Figure 1. Virtual memory layout [2]_
 
 In order to benchmark and analyse the performance of `sbrk()`, `mmap()` and the standard C++ allocator, we can design tests to focus on key performance indicators.
 
-### Benchmark Design: 
+### Benchmark Design:
 
 - _Allocation Sizes_ - Test with a varied range of allocation sizes, categorised as: small, medium and large.
 
@@ -152,7 +152,7 @@ The header data that is included in a chunk:
 
 - Flag (Used)
 
-  - The used flag indicates whether the chunk is currently allocated. When set to false, it's available to be reallocated. 
+  - The used flag indicates whether the chunk is currently allocated. When set to false, it's available to be reallocated.
 
 - Pointer (Next)
   - The next pointer is what allows the linked list to actually be formed. Its a pointer that points to the next chunk in a the linked list. When set to null determines the end of the linked list.
@@ -288,49 +288,49 @@ The allocator functions goes through a couple of steps when called.
 - Adding the new chunk to the list...
 - ... Or initialising the linked list
 
-The function `alloc(size)` is what the class uses 
-to request memory from the OS. The argument `size` 
-is the bytes of memory requested from the user. Either 
-`sbrk()` or `mmap()` can be specified when allocating 
-memory. The very first thing the allocator does is to 
-find the minimum size required for the data to be aligned. 
+The function `alloc(size)` is what the class uses
+to request memory from the OS. The argument `size`
+is the bytes of memory requested from the user. Either
+`sbrk()` or `mmap()` can be specified when allocating
+memory. The very first thing the allocator does is to
+find the minimum size required for the data to be aligned.
 
-After aligning, the function will first look if they are 
+After aligning, the function will first look if they are
 chunks that could be reused, using the chosen algorithm by
- the user. If a chunk was found, then the function will 
- return this pointer to the user, so they can rewritte and 
- re user it. If no chunks where found, then the function 
- continues.
+the user. If a chunk was found, then the function will
+return this pointer to the user, so they can rewritte and
+re user it. If no chunks where found, then the function
+continues.
 
-If the function continues, it will request memory 
-from the heap using the alignment amount of bytes. 
-This will be done either with `sbrk()` or `mmap`, and 
-will return a non nullptr chunk. The returned chunk header 
-will be intialized, setting the siae and putting the used 
+If the function continues, it will request memory
+from the heap using the alignment amount of bytes.
+This will be done either with `sbrk()` or `mmap`, and
+will return a non nullptr chunk. The returned chunk header
+will be intialized, setting the siae and putting the used
 flag to true.
 
-Once the chunk is initialized, it will be added to 
-the memory linked list. If the list already exists, it 
-is sipmly added to the end. If the linked list does not 
-exists, then it will be initialized, with the new chunk 
-being the start. Once everything is done, the function 
-will return the pointer to the chunks payload data, so 
+Once the chunk is initialized, it will be added to
+the memory linked list. If the list already exists, it
+is sipmly added to the end. If the linked list does not
+exists, then it will be initialized, with the new chunk
+being the start. Once everything is done, the function
+will return the pointer to the chunks payload data, so
 the user can use it.
 
 ### Helper Functions
 
-The `alloc()` function needs a lot of helper funcitons 
-to make the allocation of the data work. Some of these 
-functions are wuite simple, and some are there to manage 
+The `alloc()` function needs a lot of helper funcitons
+to make the allocation of the data work. Some of these
+functions are wuite simple, and some are there to manage
 settings such as the type of allocator used.
 
 #### `align(size):`
-      
+
     align(size) is a simple function that finds the minimum bytes needed for the data that needs to be allocated. It starts with a minimum target size of 8 bytes, and compares it to the passed argument size. If size is bigger, then align will double the target size until it is bigger the size provided. This ensures that the chunk is aligned, making it fit within the hexadecimal architecture.
 
 #### `alocSize():`
 
-    Similarly to align, this will return the size of the chunk to be allocated. It returns the size of the data that needs to be allocated, plus the size of the header. The header however, already has the first pointer of the user data, so it is subtracted.  
+    Similarly to align, this will return the size of the chunk to be allocated. It returns the size of the data that needs to be allocated, plus the size of the header. The header however, already has the first pointer of the user data, so it is subtracted.
 
 #### `free()`
 
@@ -345,17 +345,107 @@ settings such as the type of allocator used.
 
     This function is used to get the header of the chunk. When the user allocates data, they only get the pointer of the data, and has no access to the header. When data is being freed, the system needs to get back to the header, so it can set its flag to false.
 
-## Standard Container Wrapper [9]
+## Standard Container Wrapper
 
-The allocator only works when the user manually calls it,
- and does not work with c++ standard containers such as 
- vectors, maps, and lists. To make the allocator work with 
- standard containers, a wrapper class is needed. 
- The wrapper adds important functionalities wich the 
- standard containers need to opperate.
+Originally, the custom allocator operated only through direct function calls. This meant the inclusion of C++ Standandard Template Library (STL) containers like `std::vector`, `std::map` and `std::list`. This limitation posed an obstacle, as it disallows smooth utilisation of the custom allocator with these containers.
 
+To seamlessly integrate the custom allocator with C++ STL containers, a vital adaptation layer is required. This section introduces the Standard Container Wrapper, a crucial wrapper class that acts as an adapter. The wrapper conforms to the STL interface, while delegating predetermined memory opertaions to the underlying custom `Memory_Linked_List` allocator.
 
-## Sources 
+As this solution effectively connects the gap between the custom memory managment and C++ STL containers, we'll delve deeper into the wrappers implementation.
+
+1. **Template Class:**
+
+```
+template <typename T>
+class allocator_wrapper
+```
+
+- This code turns the following wrapper class into a template, allowing it to be used with any data type (T).
+
+2. **Standard Allocator Interface:**
+
+```
+ using value_type = T;
+ using pointer = T*;
+ using const_pointer = const T*;
+ using size_type = std::size_t;
+ using difference_type = std::ptrdiff_t;
+```
+
+- The type aliases are necessary for STL to interact with the allocator. They define the standard types for the custom allocator to work within the STL framework.
+
+3. **Constructor and Destructor:**
+
+```
+  allocator_wrapper() noexcept = default;
+  ~allocator_wrapper() noexcept = default;
+
+  template <typename U>
+  allocator_wrapper(const allocator_wrapper<U>&) noexcept {}
+```
+
+- The constructor & deconstructor are assigned to default, while the copy constructor template provides compatibility when copying or assigning containers with a possible diffenece in allocator type.
+
+4. **allocate():**
+
+```
+T* allocate(std::size_t size) noexcept
+    {
+        intptr_t* ptr = mll.alloc(size * sizeof(T));
+        return reinterpret_cast<T*>(ptr);
+    }
+
+```
+
+- This is the core of the allocator template. It receive the specifed size and then calls the `mll.alloc()`, which allocates enough memory for size number of elements of type **T**.
+  The returned `intptr_t` is then casted to a T\*.
+
+5. **deallocate():**
+
+```
+ void deallocate(T* data, std::size_t) noexcept
+    {
+        // Cast back to intptr_t* before freeing the memory.
+        mll.free(reinterpret_cast<intptr_t*>(data));
+    }
+```
+
+- This function frees the memory allocated by `allocate()`. It receives the pointer, cast it then passes it to the `mll.free()`.
+
+6. **Comparison Operators:**
+
+```
+bool operator==(const allocator_wrapper&) const noexcept { return true; }
+
+bool operator!=(const allocator_wrapper&) const noexcept { return false; }
+```
+
+- This implementation is required to define all instances of allocator_wrapper as equal.
+
+7. **rebind Struct:**
+
+```
+template <typename U>
+    struct rebind
+    {
+        using other = allocator_wrapper<U>;
+    };
+```
+
+- This is a major component for the STL compatibility. The rebind Struct allows the containers to gather an allocator for a different type 'U' from the allocator for type 'T'.
+
+8. **Memory_Linked_List Member**:
+
+```
+private:
+    Memory_Linked_List mll{};
+```
+
+- This private member `mll` of type `Memory_Linked_List` is an instance of the custom memory allocator that allocator_wrapper uses to perform the actuall allocationa and deallocation.
+
+In essence, each allocator wrapper instance has its own `Memory_Linked_List` object, allowing the use of the custom allocator with standard containers.
+
+## Sources
 
 [1]
 Ankit_Bisht, “Stack vs Heap Memory Allocation - GeeksforGeeks,” GeeksforGeeks, Dec. 26, 2018. https://www.geeksforgeeks.org/stack-vs-heap-memory-allocation/
@@ -383,6 +473,3 @@ Dmitry Soshnikov, “Writing a Memory Allocator,” Dmitry Soshnikov, Feb. 06, 2
 
 [9]
 “std::allocator - cppreference.com,” en.cppreference.com. https://en.cppreference.com/w/cpp/memory/allocator
-
-‌
-‌
