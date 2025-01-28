@@ -63,5 +63,8 @@ int main()
     for (auto&& s: vecv)
         std::cout << s << '\n';
 
+
+    runBenchmarks();
+    
     return 0;
 }

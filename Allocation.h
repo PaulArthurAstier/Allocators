@@ -15,6 +15,7 @@
  * allocators.
  */
 
+inline static Memory_Linked_List mll{};
 inline static allocator_wrapper<intptr_t> memory{};
 
 void* operator new(std::size_t size)
