@@ -6,23 +6,22 @@ Allocators are an important part of the C++ programming language, as they are re
 and deallocation of memory. In this blog series, we'll take an in-depth look at C++ allocators, including their usage,
 implementation, and all the different algorithms that go into making one.
 
-We'll start by discussing the fundermental concepts of memory management, including how the heap and stack work. From there, we'll
-explore basic from of memory storage and organisation.
+We'll start by discussing the fundamental concepts of memory management, including how the heap and stack work. From there, we'll explore basic from of memory storage and organisation.
 
 Along the way, we'll dive into the implementation details of allocators, including how to allocate memory manually using
 `sbrk()`, and memory management strategies and performance considerations. We will also explore additional details
 for implementation and other possible algorithm that could have been used.
 
-## Heap, Stack and Memory Mapping
+## Heap, Stack and Memory Mapping [1]
 
 Before we can start, we have to talk about the heap and the stack. The heap and the stack are the two fundamental
 concepts of memory and its management.
 
-### The Stack
+### The Stack 
 
 The stack is a region of memory that is used for storing local variables and function call frames. When a function is
 called, a new stack frame is created, and local variables for that function are allocated on the stack. When the
-function returns, the stack frame is deallocated, freeing the memory used by the local variables.
+function returns, the stack frame is deallocated, freeing the memory used by the local variables. 
 
 ### The Heap
 
@@ -32,19 +31,28 @@ data that persists beyond the lifetime of a single function call, such as object
 multiple functions or across threads.
 
 When a program starts, the operating system reserves space in the virtual address space for the stack and heap. The
-regions between the stack and heap are left unallocated (unmapped area) . When the program dynamically allocates memory
-using `malloc()` or `new`, the operating system maps a portion of the unallocated region onto the heap. When a
+regions between the stack and heap are left unallocated (unmapped area) . When the program dynamically allocates memory using `malloc()` or `new`, the operating system maps a portion of the unallocated region onto the heap. When a
 new function is called, the stack grows downwards into the unallocated region. The unallocated region may not be
 contiguous, and the operating system may impose restrictions on the size or location of the stack and heap.
 
 ### Memory Mapping Implementaion
 
-In our case, we will be using two different implementations, `sbrk()` & `nmap()`. The sole reason in doing so is for the purpose of being able to expand on our research topic, implementing a custom allocator, by also comparing the performance through a series of benchmark tests. Both mechanisms use different system calls for memory allocation, thus meaning they embody different characteristics. We will break down the mechanism and characterstics, starting with `sbrk()`.
+In our case, we will be using two different implementations, `sbrk()` & `mmap()`. The sole reason in doing so is for the purpose of being able to expand on our research topic, implementing a custom allocator, by also comparing the performance through a series of benchmark tests. Both mechanisms use different system calls for memory allocation, thus meaning they embody different characteristics. We will break down the mechanism and characterstics, starting with `sbrk()`.
 
 ![alt text](Images/img.png)                            
-_Figure 1. Virtual memory layout_
+_Figure 1. Virtual memory layout [2]_
 
-#### `sbrk():`
+#### `sbrk():` [3]
+
+      Chunk *memory_map_sbrk(std::size_t size)
+      {
+        auto chunk = (Chunk*)sbrk(0);
+        if(sbrk(allocSize(size)) == (void*)-1 )
+        {
+            return nullptr;
+        }
+        return chunk;
+      }
 
 - The `sbrk()` mechanism puppeteers the program break. Essentially, this is what allows the heap to be expanded and contracted.
 
@@ -60,7 +68,21 @@ _Figure 1. Virtual memory layout_
 
 - Fragmentation Potentiality - Even though `sbrk()` abides by contiguous memory, constant allocation and deallocation of varying sizes can lead to external fragmentation. There is in fact sufficient memory in total but not in a individual contiguous block.
 
-#### `mmap():`
+#### `mmap():` [4]
+
+      Chunk *memory_map_mmap(std::size_t size)
+        {
+        std::size_t total_size = allocSize(size);
+
+        void *addr = mmap(nullptr, total_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+
+        if (addr == MAP_FAILED)
+        {
+            return nullptr;
+        }
+
+        return static_cast<Chunk *>(addr);
+      }
 
 - The `mmap()` system call creates a new mapping in virtual address space of a specific process.
 
@@ -84,11 +106,11 @@ _Figure 1. Virtual memory layout_
   - _fd_ - File descriptor when mapping a file. It is set to -1 to indicate an anonymous mapping.
   - _offset_ - Offset position in within the file to start the mapping from.
 
-## Benchmark Implementation
+## Benchmark Implementation [5]
 
 In order to benchmark and analyse the performance of `sbrk()`, `mmap()` and the standard C++ allocator, we can design tests to focus on key performance indicators.
 
-### Benchmark Design:
+### Benchmark Design: 
 
 - _Allocation Sizes_ - Test with a varied range of allocation sizes, categorised as: small, medium and large.
 
@@ -108,14 +130,21 @@ In order to benchmark and analyse the performance of `sbrk()`, `mmap()` and the 
   - Deallocation Time
   - Fragmentation
 
-## Basic Memory Management
+## Basic Memory Management [6]
 
 The first step building a memory management system is to figure out how to handle your data. There are many data structures that we could use, such as binary trees, hash tables or even graphs, but we will stick to the singly linked list. The diagram shows the workings of the linked list in a visual manner.
 
-_Figure 2. Linked List Implementation_
-
 For each node of the linked list, we will create a Chunk, which will contain header data about the memory that we have stored.
 The header data that is included in a chunk:
+
+      class Chunk
+      {
+      public:
+          std::size_t size;
+          bool used;
+          Chunk* next;
+          intptr_t data[1];
+      };
 
 - Size
 
@@ -163,6 +192,16 @@ Given that the object header contains 24 bytes and the Payload contains 64 bytes
 
 **Padding(alignment)**
 
+    std::size_t align(std::size_t size)
+    {
+        auto i = 8;
+        while (i < size)
+        {
+            i *= 2;
+        }
+        return i;
+    }
+
 - Since 24(header) + 64(payload) = 88. The sum of the size of the header and the payload is a multiple of 8.
 
 - Considering we are using a x64 system we will not need any extra padding outside of the header and payload at the end of the chunk.
@@ -174,7 +213,7 @@ Given that the object header contains 24 bytes and the Payload contains 64 bytes
 ![alt text](Images/image.png)
 _Figure 3. Padding is added to the object header as N_
 
-## Memory Linked-List
+## Memory Linked-List [7] [8]
 
 The chosen algorithm for the memory pool is a singly linked list, which can be managed using different types of algorithms. When data is requested by the user, a chunk is created on the heap, and is added at the end of the list. When the user frees data, the chunk used flag is set to false, which means it needs to be reused.
 
@@ -185,6 +224,18 @@ This section will talk about how the memory is managed, with the types of reuse 
 Most of the work done in the memory linked list class is the search algorithms when resuing data. When the user frees data, the class simply marks the chunks used flag to false. The difficult part comes when reusing this chunk for new data. Chunks can only be reused if the new data is the same or smaller in size then the unused chunk.
 
 There are multiple ways to find chunks within the linked-list, and we implemented some of these in the class. The search algorithm can be selected within the class, depending on waht the user needs.
+
+    Chunk *first_fit(std::size_t size)
+    {
+        for (auto s = m_initial; s != nullptr; s = s->next)
+        {
+            if (!s->used && s->size >= size)
+            {
+                return s;
+            }
+        }
+        return nullptr;
+    }
 
 #### First Fit:
 
@@ -203,6 +254,31 @@ There are multiple ways to find chunks within the linked-list, and we implemente
     Free Listing algorithm uses a whole different linked list to store freed chunks. When a chunk is freed, instead of just setting the flag to false, the free function will also rearrange the memory list, putting the freed chunk at the end of the freed list. When the user requests memory, all the class has to do is to look through the free list, instead of the whole memory.
 
 ### Allocator
+
+    intptr_t *alloc(std::size_t size)
+    {
+        auto aligned = align(size);
+        if (auto freed_chunk = find_chunk(aligned))
+        {
+            freed_chunk->used = true;
+            return freed_chunk->data;
+        }
+        auto chunk = memory_map(aligned);
+        chunk->size = aligned;
+        chunk->used = true;
+        if (m_start != nullptr)
+        {
+            m_end->next = chunk;
+        }
+        if (m_initial == nullptr)
+        {
+            m_initial = chunk;
+            m_next_fit_chunk = chunk;
+            m_start = chunk;
+        }
+        m_end = chunk;
+        return chunk->data;
+    }
 
 The allocator functions goes through a couple of steps when called.
 
@@ -262,9 +338,14 @@ settings such as the type of allocator used.
 
 #### `getheader()`
 
+    static Chunk* get_header(intptr_t* data)
+    {
+        return (Chunk*)((char*)data + sizeof(std::declval<Chunk>().data) - sizeof(Chunk));
+    }
+
     This function is used to get the header of the chunk. When the user allocates data, they only get the pointer of the data, and has no access to the header. When data is being freed, the system needs to get back to the header, so it can set its flag to false.
 
-## Standard Container Wrapper
+## Standard Container Wrapper [9]
 
 The allocator only works when the user manually calls it,
  and does not work with c++ standard containers such as 
@@ -273,4 +354,35 @@ The allocator only works when the user manually calls it,
  The wrapper adds important functionalities wich the 
  standard containers need to opperate.
 
- 
+
+## Sources 
+
+[1]
+Ankit_Bisht, “Stack vs Heap Memory Allocation - GeeksforGeeks,” GeeksforGeeks, Dec. 26, 2018. https://www.geeksforgeeks.org/stack-vs-heap-memory-allocation/
+
+[2]
+D. Soshnikov, Memory Layout. 2019. Available: http://dmitrysoshnikov.com/compilers/writing-a-memory-allocator/
+
+‌[3]
+S. N. Hegde, “mmap, brk and sbrk memory management calls in UNIX,” OpenGenus IQ. https://iq.opengenus.org/mmap-brk-and-sbrk-in-unix/
+
+‌[4]
+S. N. Hegde, “mmap, brk and sbrk memory management calls in UNIX,” OpenGenus IQ. https://iq.opengenus.org/mmap-brk-and-sbrk-in-unix/
+
+‌[5]
+in, “BENCHMARKING in C++ (how to measure performance),” YouTube, Aug. 07, 2019. https://youtu.be/YG4jexlSAjc?si=pwT2qWWY7peJAHxK (accessed Jan. 28, 2025).
+
+‌[6]
+Dmitry Soshnikov, “Writing a Memory Allocator,” Dmitry Soshnikov, Feb. 06, 2019. http://dmitrysoshnikov.com/compilers/writing-a-memory-allocator/
+
+‌[7]
+D. Soshnikov, “Writing a Pool Allocator.” http://dmitrysoshnikov.com/compilers/writing-a-pool-allocator/
+
+‌[8]
+Dmitry Soshnikov, “Writing a Memory Allocator,” Dmitry Soshnikov, Feb. 06, 2019. http://dmitrysoshnikov.com/compilers/writing-a-memory-allocator/
+
+[9]
+“std::allocator - cppreference.com,” en.cppreference.com. https://en.cppreference.com/w/cpp/memory/allocator
+
+‌
+‌
